@@ -761,6 +761,17 @@ body{overflow-x:hidden}
 .canrow{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px dashed var(--cloud);font:700 16px/22px var(--f-sans)}.canrow span{flex:1}
 .cb{width:44px;height:44px;border:3px solid var(--cloud);border-radius:var(--r-sm);background:#fff;font-size:20px;cursor:pointer}.cb.on{border-color:var(--plum);background:#F4F3FD}
 </style>
+<style>
+.gw{border:none;background:none;padding:0 1px;margin:0;font:inherit;color:inherit;cursor:pointer;border-radius:4px;line-height:inherit;min-height:0}
+.gw.on{background:#FFE2B8}
+.gw.hard{text-decoration:underline dotted #E8742A 2px;text-underline-offset:4px}
+.gpop{position:absolute;z-index:60;max-width:260px;background:#3B2A1F;color:#fff;border-radius:12px;padding:8px 12px;font:700 15px/21px var(--f-sans);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.gpop b{color:#FFD9A8}
+.taphint{background:#FFF1DC;border:2px dashed #E8A05B;color:var(--ink);border-radius:var(--r-md);padding:10px 12px;margin:6px 0 10px;font:600 15px/21px var(--f-sans)}
+.taphint b{color:#B8442F}.taphint span{color:var(--muted);font-size:14px}
+.task .trbtn{margin-left:6px;vertical-align:middle;min-height:32px;padding:0 10px}
+[hidden]{display:none!important}
+</style>
 </head>
 <body>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -1144,7 +1155,7 @@ function missionDone(k){
 function choiceCard(parent,t,id,o={}){
   const card=el("div","card"+(o.cls?" "+o.cls:""));
   if(o.pre) card.appendChild(o.pre);
-  if(t.q!=null){ const q=el("p","q"); q.appendChild(el("span","",t.q)); if(o.audio!==false) q.appendChild(sayBtn(o.sayText||t.q)); card.appendChild(q); }
+  if(t.q!=null){ const q=el("p","q"); q.appendChild(el("span","",(o.gloss!==false&&!/[<]/.test(t.q))?wordsHTML(t.q):t.q)); if(o.audio!==false) q.appendChild(sayBtn(o.sayText||t.q)); card.appendChild(q); }
   if(t.ru) card.appendChild(el("p","ru",t.ru));
   const opts=el("div","opts"), fb=fbEl(); card.append(opts,fb);
   t.options.forEach((txt,i)=>{
@@ -1266,7 +1277,8 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopAllMi
 
 function stick(gid,k){ const t=document.querySelector(`#${gid} [data-k="${k}"]`); if(t && !t.classList.contains("stuck")) t.classList.add("stuck","pop"); }
 function goal(B,k){ const m=MISSIONS.find(x=>x.k===k); B.appendChild(el("p","ru",m.ru)); B.lastChild.style.margin="-8px 0 var(--gap-md)"; }
-function task(B,en,ru,top){ const p=el("p","task",en); if(top) p.style.marginTop="var(--gap-md)"; B.appendChild(p); if(ru) B.appendChild(el("p","ru",ru)); }
+function task(B,en,ru,top){ const p=el("p","task",en); if(top) p.style.marginTop="var(--gap-md)"; B.appendChild(p);
+  if(ru){ const box=el("p","ru trbox",ru); box.hidden=true; const bt=el("button","trbtn","🇷🇺"); bt.type="button"; bt.title="Перевод задания"; bt.onclick=()=>{ box.hidden=!box.hidden; bt.classList.toggle("on",!box.hidden); }; p.appendChild(bt); B.appendChild(box); } }
 const pic = s => el("div","",`<span class="bigpic" aria-hidden="true">${s}</span>`);
 const fill = (q,w) => q.replace("…",w).replace(/^… /,w+" ");
 
@@ -1305,6 +1317,20 @@ function brainBreak(B,key,id){
 function addTr(card,html,before){ const box=el("div","trbox",html); box.hidden=true; const bt=el("button","trbtn","🇷🇺"); bt.type="button"; bt.title="Перевод"; bt.onclick=()=>{ box.hidden=!box.hidden; bt.classList.toggle("on",!box.hidden); }; const ref=before||card.querySelector(".opts"); if(ref&&ref.parentNode===card){ card.insertBefore(bt,ref); card.insertBefore(box,ref); } else card.append(bt,box); }
 function cc(B,t,id,o){ const c=choiceCard(B,Object.assign({},t,{ru:undefined}),id,o||{}); if(t.ru) addTr(c,t.ru); return c; }
 const artBox = (html,cls) => el("div","artbox "+(cls||""),html);
+/* ---- tap-a-word: hear the word + see the translation (как в «Легендах») ---- */
+const TAPHINT = () => el("div","taphint",`👆 <b>Tap any word:</b> you will hear it and see the translation.<br><span>Нажми на любое слово — услышишь его и увидишь перевод. Подчёркнутые — трудные слова.</span>`);
+const gpop=el("div","gpop"); gpop.hidden=true; document.body.appendChild(gpop);
+const gkey=t=>t.toLowerCase().replace(/[’]/g,"'").replace(/[^a-z0-9'-]/g,"").replace(/^'+|'+$/g,"").replace(/'s$/,"").replace(/n't$/,"n");
+function wordsHTML(en){ return String(en).split(/(\s+)/).map(t=>{ if(!t||/^\s+$/.test(t)) return t; const k=gkey(t); if(!k||/^[0-9]+$/.test(k)||k==="…") return t; return `<button type="button" class="gw${HARD.has(k)?" hard":""}" data-k="${k}">${t}</button>`; }).join(""); }
+document.addEventListener("click",e=>{ const w=e.target.closest(".gw"); if(!w){ if(!e.target.closest(".gpop")) gpop.hidden=true; return; }
+  const g=GLOSS[w.dataset.k]; speak(w.textContent.replace(/[^A-Za-z'’ -]/g,""));
+  document.querySelectorAll(".gw.on").forEach(x=>x.classList.remove("on")); w.classList.add("on");
+  if(!g){ gpop.hidden=true; return; }
+  gpop.innerHTML=`<b>${w.textContent.replace(/[.,!?“”"…:;()]/g,"")}</b> — ${g}`; gpop.hidden=false;
+  const r=w.getBoundingClientRect(); const x=Math.max(8,Math.min(window.innerWidth-gpop.offsetWidth-8,r.left+r.width/2-gpop.offsetWidth/2)); gpop.style.left=x+"px"; gpop.style.top=(window.scrollY+r.top-gpop.offsetHeight-8)+"px"; });
+const HARD = new Set("lighthouse unusual famous steps view fantastic square information nationality thirteenth eighth fifth fourth ground castle".split(" "));
+const GLOSS = {"a": "(неопр. артикль) один, какой-то", "an": "(неопр. артикль) один, какой-то", "and": "и", "are": "есть, являются (we/you/they are)", "artist": "художник", "at": "в, на (место); at home — дома", "bath": "ванна; have a bath — принимать ванну", "bathroom": "ванная комната", "bathrooms": "ванные комнаты", "beautiful": "красивый", "bedroom": "спальня", "bedrooms": "спальни", "big": "большой", "brothers": "братья", "but": "но", "by": "у, рядом с; by the sea — у моря", "car": "машина", "castle": "замок", "co": "co (часть адреса: co.uk)", "coat": "пальто", "collection": "коллекция", "cooks": "готовит", "dad": "папа", "dinner": "ужин", "dot": "точка (в адресе)", "edinburgh": "Эдинбург (столица Шотландии)", "eighth": "восьмой", "ella": "Элла (имя)", "email": "напишите по e-mail", "famous": "❓ Угадай по смыслу — проверим в задании «words in bold»!", "fantastic": "потрясающий", "fifth": "пятый", "first": "первый", "five": "пять", "flat": "квартира", "floor": "этаж", "floors": "этажи", "for": "для; for sale — продаётся", "fourth": "четвёртый", "friends": "друзья", "from": "из, от", "garden": "сад", "got": "have got — иметь", "ground": "земля; the ground floor — первый этаж (у нас)", "hall": "прихожая, холл", "has": "has got — имеет (he/she/it)", "have": "иметь; have got — иметь", "hello": "здравствуйте", "home": "дом, жильё", "house": "дом", "ian": "Иэн (имя)", "in": "в", "information": "информация", "is": "есть, является (he/she/it is)", "isn": "isn't = is not — не является; there isn't — нет", "it": "он, она, оно (о предмете); it's = it is", "kate": "Кейт (имя)", "kitchen": "кухня", "lift": "лифт", "lighthouse": "маяк", "lily": "Лили (имя)", "live": "жить", "living": "living room — гостиная", "looking": "looking for — ищете", "lovely": "прелестный, чудесный", "max": "Макс (имя)", "metres": "метры", "more": "больше; for more information — чтобы узнать больше", "mum": "мама", "nationality": "национальность", "new": "новый", "north": "север", "of": "(показывает принадлежность) — of the sea — моря", "off": "take off — снимать (одежду)", "old": "старый; 150 years old — 150 лет", "on": "на; on the first floor — на втором этаже (у нас)", "pay": "платить", "price": "цена", "room": "комната", "ross": "Росс (фамилия)", "sale": "продажа; for sale — продаётся", "sam": "Сэм (имя)", "scotland": "Шотландия", "sea": "море", "second": "второй", "shoes": "обувь, туфли", "six": "шесть", "sleep": "спать", "small": "маленький", "so": "поэтому, так что", "square": "квадратный; square metres — кв. метры", "steps": "❓ Угадай по смыслу — проверим в задании «words in bold»!", "tall": "высокий", "take": "брать; take off — снимать", "thank": "thank you — спасибо", "that": "тот, это; that's = that is — это", "the": "(опр. артикль) этот самый", "there": "там; there is / there are — есть, находится", "third": "третий", "thirteenth": "тринадцатый", "this": "этот, эта, это", "three": "три", "to": "к, до; to the top — до верха", "top": "верх, вершина", "tower": "башня", "tv": "телевизор", "two": "два", "uk": "uk — Великобритания (в адресе)", "unusual": "❓ Угадай по смыслу — проверим в задании «words in bold»!", "us": "нам, нас; email us — напишите нам", "very": "очень", "view": "❓ Угадай по смыслу — проверим в задании «words in bold»!", "watch": "смотреть; watch TV — смотреть телевизор", "we": "мы", "we've": "we've got = we have got — у нас есть", "what": "что, какой", "which": "который, какой; Which floor? — На каком этаже?", "who": "кто", "years": "годы, лет", "you": "ты, вы", "your": "твой, ваш"};
+
 function capCard(parent,t,id,ru){ const card=el("div","card"); card.innerHTML=`<p class="task">🔠 Tap the word that needs a capital letter.</p>`;
   const toks=el("div","toks"), fb=fbEl(); card.append(toks,fb); parent.appendChild(card);
   t.words.forEach((w,i)=>{ const b=el("button","tok",w); b.type="button"; b.onclick=()=>{ if(card.classList.contains("solved")) return;
@@ -1342,7 +1368,7 @@ function recWidget(parent,id,o={}){
   if(o.save){ const sv=el("button","btn ghost","💾 Save"); sv.type="button"; sv.onclick=()=>{ const r=RECS[id]; if(!r){ msg.textContent="Сначала запиши 🙂"; return; } const ext=/mp4/.test(r.mime)?"m4a":"webm"; const a=document.createElement("a"); a.href=r.url; a.download=`${o.save}-${(NAME||"student").replace(/[^\wа-яё-]+/gi,"_")}.${ext}`; document.body.appendChild(a); a.click(); a.remove(); msg.textContent="✓ Файл сохранён в «Загрузки»."; }; row.appendChild(sv); }
   return box;
 }
-function karaoke(B,lines,o){ const c=el("div","card story"); lines.forEach((l,i)=>{ const r=el("div","sl2"); r.dataset.i=i; if(l.r){ const R=ROLES[l.r]; r.innerHTML=`<span class="who">${P3(R.pic)}<b>${R.name}</b></span>`; } const t=el("div","tx"); t.appendChild(el("span","en",l.t||l)); const ru=el("span","ruh",l.ru||""); ru.hidden=true; t.appendChild(ru);
+function karaoke(B,lines,o){ const c=el("div","card story"); lines.forEach((l,i)=>{ const r=el("div","sl2"); r.dataset.i=i; if(l.r){ const R=ROLES[l.r]; r.innerHTML=`<span class="who">${P3(R.pic)}<b>${R.name}</b></span>`; } const t=el("div","tx"); t.appendChild(el("span","en",wordsHTML(l.t||l))); const ru=el("span","ruh",l.ru||""); ru.hidden=true; t.appendChild(ru);
     const tools=el("div","tl"); tools.appendChild(sayBtn((l.t||l).replace(/[—]/g,","))); const tb=el("button","say tr","🇷🇺"); tb.type="button"; tb.onclick=()=>{ ru.hidden=!ru.hidden; }; if(l.ru) tools.appendChild(tb); r.append(t,tools); c.appendChild(r); });
   B.appendChild(c); return c; }
 function playAll(c,lines,done){ let k=0; const rows=c.querySelectorAll(".sl2"); const nx=()=>{ rows.forEach(r=>r.classList.toggle("now",+r.dataset.i===k)); if(k<lines.length){ const l=lines[k++]; speak((l.t||l).replace(/[—]/g,","),nx,l.r?ROLES[l.r].pitch:1); } else { rows.forEach(r=>r.classList.remove("now")); done&&done(); } }; nx(); }
@@ -1421,7 +1447,8 @@ const lsBtn = (say,label) => { const b=el("button","btn small",label||"▶ Liste
 (function(){ const B=PANEL.t.body; goal(B,"t");
   B.appendChild(el("p","rut","📖 В учебнике (SB p. 47) — статья «Live High Up!». Здесь — наш текст в том же формате."));
   B.appendChild(el("div","artbox",P3("sea")+P3("stairs")+P3("window")));
-  task(B,`📖 Read and listen: ${READ_TITLE}`,"Посмотри на картинки и заголовок: о чём текст? Прочитай и послушай. 🇷🇺 — перевод строки (только если совсем трудно).");
+  task(B,`📖 Read and listen: ${READ_TITLE}`,"Посмотри на картинки и заголовок: о чём текст? Прочитай и послушай. Незнакомое слово — нажми на него! 🇷🇺 у строки — перевод всего предложения (только если совсем трудно).");
+  B.appendChild(TAPHINT());
   const k=karaoke(B,READ.map(r=>({t:r.en,ru:r.ru})));
   const row=el("div","page-tools"); const pb=el("button","btn","▶ Play the text"), rd=el("button","btn ghost","✓ I've read it"); pb.type=rd.type="button"; pb.dataset.ue="skip"; row.append(pb,rd); B.appendChild(row);
   pb.onclick=()=>playAll(k,READ.map(r=>({t:r.en})),()=>award("read",pb)); rd.onclick=()=>award("read",rd);
@@ -1439,7 +1466,7 @@ const lsBtn = (say,label) => { const b=el("button","btn small",label||"▶ Liste
   task(B,"🎧 Listen and complete the gaps 1–5.","Послушай объявление (можно 2 раза) и выбери, что вставить в пропуски 1–5.",true);
   const pr=el("div","page-tools"); const pl=el("button","btn","▶ Play the advert"); pl.type="button"; pl.dataset.ue="skip"; pl.onclick=()=>{ let i=0; const nx=()=>{ if(i<AD_TEXT.length) speak(AD_TEXT[i++],nx); }; nx(); }; pr.appendChild(pl); B.appendChild(pr);
   AD_GAPS.forEach((t,i)=>choiceCard(B,{q:t.lab,options:t.options,answer:t.answer},"ad"+i,{audio:false,onOk:()=>speak(t.lab.replace(/^\d\) /,"").replace("…",t.options[t.answer]))}));
-  const tr=el("div","card"); tr.appendChild(el("p","ru","📄 Текст объявления (после ответов):")); B.appendChild(tr); addTr(tr,AD_TEXT.join("<br>"));
+  const tr=el("div","card"); tr.appendChild(el("p","ru","📄 Текст объявления (после ответов):")); B.appendChild(tr); addTr(tr,AD_TEXT.map(wordsHTML).join("<br>"));
 })();
 
 /* =================== 6 — /θ/ /ð/ =================== */
@@ -1449,7 +1476,7 @@ const lsBtn = (say,label) => { const b=el("button","btn small",label||"▶ Liste
   task(B,"🗂️ Listen and sort.","Послушай слово и отправь его в нужную коробку.",true);
   sorter2(B,TH,["/θ/ sixth","/ð/ the"],"th");
   task(B,"👅 Tongue twister","Скороговорка: прочитай 3 раза — всё быстрее!",true);
-  const tc=el("div","card"); tc.appendChild(el("p","guide",TH_TWISTER.replace(/th/gi,m=>`<b>${m}</b>`))); tc.appendChild(sayBtn(TH_TWISTER)); B.appendChild(tc);
+  const tc=el("div","card"); tc.appendChild(el("p","guide",wordsHTML(TH_TWISTER).replace(/>([^<]+)</g,(m,x)=>">"+x.replace(/th/gi,y=>`<b>${y}</b>`)+"<"))); tc.appendChild(sayBtn(TH_TWISTER)); B.appendChild(tc);
   brainBreak(B,"mime","bb-mime");
 })();
 
