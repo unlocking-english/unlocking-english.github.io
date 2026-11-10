@@ -1372,6 +1372,12 @@ const pics = arr => arr.map(P3).join("");
 
 /* ---- mini recorder: record → listen to yourself (optionally keep for saving) ---- */
 const RECS={};
+function recToWav(blob){ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return Promise.resolve(null); const ac=new AC();
+  return blob.arrayBuffer().then(ab=>ac.decodeAudioData(ab)).then(buf=>{ const rate=16000, ch=buf.getChannelData(0), ratio=buf.sampleRate/rate, n=Math.floor(ch.length/ratio);
+    const dv=new DataView(new ArrayBuffer(44+n*2)); let peak=0; const w=(o,s)=>{ for(let i=0;i<s.length;i++) dv.setUint8(o+i,s.charCodeAt(i)); };
+    w(0,"RIFF"); dv.setUint32(4,36+n*2,true); w(8,"WAVE"); w(12,"fmt "); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true); dv.setUint32(24,rate,true); dv.setUint32(28,rate*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true); w(36,"data"); dv.setUint32(40,n*2,true);
+    for(let i=0;i<n;i++){ const a=Math.floor(i*ratio), b=Math.min(ch.length,Math.max(a+1,Math.floor((i+1)*ratio))); let s=0; for(let j=a;j<b;j++) s+=ch[j]; s/=(b-a); if(Math.abs(s)>peak) peak=Math.abs(s); dv.setInt16(44+i*2,Math.max(-1,Math.min(1,s))*0x7fff,true); }
+    return {blob:new Blob([dv],{type:"audio/wav"}),peak}; }).catch(()=>null).finally(()=>{ try{ ac.close(); }catch(e){} }); }
 function recWidget(parent,id,o={}){
   const box=el("div","recw"); box.innerHTML=`<span class="rt">00:00</span><span class="meter"><i></i></span>`;
   const st=el("button","btn small","🎙️ Record"), sp=el("button","btn small","⏹ Stop"), pl=el("button","btn small","▶ My voice"); [st,sp,pl].forEach(b=>b.type="button"); sp.disabled=true; pl.disabled=true;
@@ -1393,7 +1399,7 @@ function recWidget(parent,id,o={}){
       const loop=()=>{ an.getFloatTimeDomainData(buf); let s=0; for(const v of buf) s+=v*v; lv.style.width=Math.min(100,Math.sqrt(Math.sqrt(s/buf.length)/0.25)*100)+"%"; raf=requestAnimationFrame(loop); }; loop(); }catch(e){} };
   sp.onclick=()=>stopAll();
   pl.onclick=()=>{ const r=RECS[id]; if(!r) return; stopAllMics(); try{ speechSynthesis.cancel(); }catch(e){} const au=new Audio(r.url); const p=au.play(); if(p&&p.catch) p.catch(()=>{}); };
-  if(o.save){ const sv=el("button","btn ghost","💾 Save"); sv.type="button"; sv.onclick=()=>{ const r=RECS[id]; if(!r){ msg.textContent="Сначала запиши 🙂"; return; } const ext=/mp4/.test(r.mime)?"m4a":"webm"; const a=document.createElement("a"); a.href=r.url; a.download=`${o.save}-${(NAME||"student").replace(/[^\wа-яё-]+/gi,"_")}.${ext}`; document.body.appendChild(a); a.click(); a.remove(); msg.textContent="✓ Файл сохранён в «Загрузки»."; }; row.appendChild(sv); }
+  if(o.save){ const sv=el("button","btn ghost","💾 Save"); sv.type="button"; sv.onclick=()=>{ const r=RECS[id]; if(!r){ msg.textContent="Сначала запиши 🙂"; return; } msg.textContent="⏳ Saving… · Сохраняю…"; recToWav(r.blob).then(w=>{ const ext=w?"wav":(/mp4/.test(r.mime)?"m4a":"webm"); const a=document.createElement("a"); a.href=w?URL.createObjectURL(w.blob):r.url; a.download=`${o.save}-${(NAME||"student").replace(/[^\wа-яё-]+/gi,"_")}.${ext}`; document.body.appendChild(a); a.click(); a.remove(); msg.textContent=(w&&w.peak<0.003)?"⚠ В записи нет звука. Проверь микрофон (значок 🔒 у адреса → Микрофон) и запиши ещё раз.":"✓ Файл сохранён в «Загрузки» (.wav)."; }); }; row.appendChild(sv); }
   return box;
 }
 function karaoke(B,lines,o){ const c=el("div","card story"); lines.forEach((l,i)=>{ const r=el("div","sl2"); r.dataset.i=i; if(l.r){ const R=ROLES[l.r]; r.innerHTML=`<span class="who">${P3(R.pic)}<b>${R.name}</b></span>`; } const t=el("div","tx"); t.appendChild(el("span","en",l.t||l)); const ru=el("span","ruh",l.ru||""); ru.hidden=true; t.appendChild(ru);
