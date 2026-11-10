@@ -1599,7 +1599,7 @@ let CANDO = [];
 /* rules the student sees at the top */
 const RULES_EN_RU = [
   ["✍️", "Write your name at the top first — your result is sent with it.", "Сначала впишите имя вверху — результат отправляется с ним."],
-  ["✅", "Answer every question. If you don't know, guess! You can change any answer until you press “Finish”.", "Отвечайте на все вопросы. Не знаете — угадайте! Любой ответ можно поменять, пока не нажали «Finish»."],
+  ["🚫", "Don't guess! If you don't know the answer, leave the question blank — guessing makes your result less accurate. You can change any answer until you press “Finish”.", "Не угадывайте! Если не знаете ответ, оставьте вопрос пустым — угадывание искажает результат. Любой ответ можно поменять, пока не нажали «Finish»."],
   ["🎧", "Start with Listening: press Play once. Each recording plays once, with pauses for your answers.", "Начните с аудирования: нажмите Play один раз. Каждая запись звучит один раз, с паузами для ответов."],
   ["⏱", "Parts 1–4 take about 60 minutes. Use the timer if you like — there is no limit for each part.", "Части 1–4 — около 60 минут. Таймер по желанию, отдельного лимита на часть нет."],
   ["💾", "Your answers are saved automatically in this browser. If you close the page or the internet goes off, open the same link on the same device and browser — your answers will come back. Don't use private (incognito) mode.", "Ответы сохраняются автоматически в этом браузере. Если закрыли страницу или пропал интернет — откройте ту же ссылку на том же устройстве и в том же браузере, ответы вернутся. Не используйте режим инкогнито."],
@@ -1767,13 +1767,13 @@ function build() {
     s.append(rater("write", WRITE_DESC));
     task("k6", 1, () => RATING.write || nWords() >= 30 ? 1 : 0);
   }
-  $("#lesson").append(h("div", { class: "card finish" }, h("p", null, "Have you answered all 80 questions? You can still change your answers. When you press Finish, your result goes to Val. · Проверьте, что ответили на все 80 вопросов. После «Finish» результат уйдёт Вэл."), linkBtn("🏁 Finish the test and see my result", "big", showResults)));
+  $("#lesson").append(h("div", { class: "card finish" }, h("p", null, "Check your answers — you can still change them. Questions you don't know stay blank: please don't guess. When you press Finish, your result goes to Val. · Проверьте ответы — их ещё можно поменять. Вопросы, которых не знаете, оставьте пустыми: не угадывайте. После «Finish» результат уйдёт Вэл."), linkBtn("🏁 Finish the test and see my result", "big", showResults)));
 }
 function showResults() {
   const nameEl = $("#studentName"), name = nameEl.value.trim();
   if (!name) { nameEl.focus(); nameEl.scrollIntoView({ behavior: "smooth", block: "center" }); toast("Write your name first · Сначала впишите имя"); return; }
   const miss = range(1, 80).filter(n => !ANS[n]);
-  if (miss.length && !confirm("You haven't answered " + miss.length + " question(s): " + miss.slice(0, 15).join(", ") + (miss.length > 15 ? "…" : "") + ". Finish anyway? · Есть вопросы без ответа. Всё равно закончить?")) return;
+  if (miss.length && !confirm("You haven't answered " + miss.length + " question(s): " + miss.slice(0, 15).join(", ") + (miss.length > 15 ? "…" : "") + ". If you really don't know them, that's OK — don't guess. Finish now? · Есть вопросы без ответа. Если вы их не знаете — это нормально, не угадывайте. Закончить?")) return;
   const { s, total, band, wrong } = result();
   if (typeof sendNow === "function") sendNow("finish");
   const ov = h("div", { class: "rep-wrap", role: "dialog" }); const close = () => ov.remove();
