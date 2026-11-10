@@ -128,7 +128,23 @@ var BOOKS = [
 /* catalog.json (edited in hidden/catalog-editor.html): path → {dir, level, type, title} fixes and hidden files.
    Files stay where they are, so links already sent to students keep working. */
 var FIX = {}, HIDE = [];
-function grpOf(b) { return b.kids ? "kids" : b.teens ? "teens" : "adults"; }
+function grpOf(b) { return b.grp || (b.kids ? "kids" : b.teens ? "teens" : "adults"); }
+/* shelves (sections on the home page); catalog.json can rename them and add new ones */
+var GROUPS = [
+  { id: "adults", name: "Adults", sub: "Взрослые · учебники, грамматика и темы", color: "#4A3426" },
+  { id: "teens", name: "Teens", sub: "Подростки · школьные учебники, темы и проекты", color: "#3F6643" },
+  { id: "kids", name: "Kids", sub: "Дети · учебники, темы и подготовка к конкурсам", color: "#2F7FA8" }
+];
+var BASE_BOOKS = null, BASE_GROUPS = null;
+function applyCatalog(c) {
+  c = c || {};
+  if (!BASE_BOOKS) { BASE_BOOKS = JSON.stringify(BOOKS); BASE_GROUPS = JSON.stringify(GROUPS); }
+  BOOKS = JSON.parse(BASE_BOOKS); GROUPS = JSON.parse(BASE_GROUPS);
+  FIX = c.fix || {}; HIDE = c.hide || [];
+  (c.shelves || []).forEach(function (g) { if (!g || !g.id) return; var x = GROUPS.filter(function (y) { return y.id === g.id; })[0]; if (x) Object.keys(g).forEach(function (k) { if (g[k] !== "" && g[k] != null) x[k] = g[k]; }); else GROUPS.push({ id: g.id, name: g.name || g.id, sub: g.sub || "", color: g.color || "#6F4E37" }); });
+  (c.books || []).forEach(function (b) { if (!b || !b.dir) return; var x = BOOKS.filter(function (y) { return y.dir === b.dir; })[0]; if (!x) { x = { dir: b.dir, name: b.dir, sub: "", color: "#7A6555" }; BOOKS.push(x); } Object.keys(b).forEach(function (k) { if (b[k] !== "" && b[k] != null) x[k] = b[k]; }); if (b.grp) { x.kids = x.grp === "kids"; x.teens = x.grp === "teens"; } });
+}
+function groupOf(id) { return GROUPS.filter(function (g) { return g.id === id; })[0] || GROUPS[0]; }
 var LEVELS = ["starter", "a1", "a1+", "a2", "a2+", "b1", "b1+", "b2", "b2+", "c1", "c2"];
 var TYPES = { lessons: "lessons", lesson: "lessons", "уроки": "lessons", homework: "homework", homeworks: "homework", hw: "homework", "домашки": "homework" };
 var TYPE_LABEL = { lessons: "Lessons · Уроки", homework: "Homework · Домашние задания" };
@@ -230,7 +246,7 @@ function viewHome(only) {
     right.append(el("div", "script", "Every lesson is a key."));
   }
   var kl = el("div", "keyline");
-  [["Adults", "adults"], ["Teens", "teens"], ["Kids", "kids"]].forEach(function (x) { var a = el("a", "pill jump" + (only === x[1] ? " on" : ""), x[0]); a.href = "#" + x[1]; kl.append(a); });
+  GROUPS.forEach(function (g) { var a = el("a", "pill jump" + (only === g.id ? " on" : ""), g.name); a.href = "#" + g.id; kl.append(a); });
   right.append(kl);
   hero.append(left, right); w.append(hero);
   var how = el("section", "how");
@@ -238,15 +254,15 @@ function viewHome(only) {
     var d = el("div", "step"); d.append(el("span", "n", s[0]), el("b", null, s[1])); var p = el("p", null, ""); p.append(el("span", "ru", s[2])); d.append(p); how.append(d); });
   w.append(how);
   if (FAILED) w.append(el("div", "empty", "Could not load the list of tasks. Please refresh the page in a minute. · Не удалось загрузить список заданий. Обновите страницу через минуту."));
-  [["adults", "Adults", "Взрослые · учебники, грамматика и темы", ""], ["teens", "Teens", "Подростки · школьные учебники, темы и проекты", " teensgrp"], ["kids", "Kids", "Дети · учебники, темы и подготовка к конкурсам", " kidsgrp"]].forEach(function (g) {
-    if (only && only !== g[0]) return;
-    var s = el("section", "grp" + g[3]); s.id = g[0] + "-shelf"; s.append(el("h2", "sec", g[1]), el("p", "secsub", g[2]), shelfOf(g[0])); w.append(s);
+  GROUPS.forEach(function (g) {
+    if (only && only !== g.id) return;
+    var s = el("section", "grp"); s.id = g.id + "-shelf"; var h2 = el("h2", "sec", g.name); h2.style.color = g.color; s.append(h2, el("p", "secsub", g.sub || ""), shelfOf(g.id)); w.append(s);
   });
   app.append(w); window.scrollTo(0, 0);
 }
 function viewBook(b, onlyLevel) {
   var app = document.getElementById("app"); app.innerHTML = "";
-  var w = el("div", "wrap"), back = el("button", "back", b.kids ? "← Kids · Все детские учебники" : b.teens ? "← Teens · Все учебники для подростков" : "← All books · Все учебники"); back.type = "button"; back.addEventListener("click", function () { location.hash = b.kids ? "kids" : b.teens ? "teens" : ""; });
+  var bg = groupOf(grpOf(b)), w = el("div", "wrap"), back = el("button", "back", bg.id === "adults" ? "← All books · Все учебники" : "← " + bg.name + " · " + (bg.sub || "").split("·")[0].trim()); back.type = "button"; back.addEventListener("click", function () { location.hash = bg.id === "adults" ? "" : bg.id; });
   var head = el("div", "chead"); head.append(el("h1", null, b.name), el("span", "sub", b.sub || "")); w.append(back, head);
   var items = DATA.filter(function (d) { return d.dir === b.dir; });
   if (!items.length) { w.append(el("div", "empty", LOADED ? "Coming soon · Скоро здесь появятся уроки и домашние задания." : "Loading… · Загружаю…")); app.append(w); return; }
@@ -281,7 +297,7 @@ function route() {
   if (q) return viewSearch(q);
   var h = decodeURIComponent(location.hash.slice(1));
   var b = BOOKS.filter(function (x) { return slug(x.dir) === h; })[0];
-  b ? viewBook(b) : viewHome(h === "kids" || h === "adults" || h === "teens" ? h : "");
+  b ? viewBook(b) : viewHome(GROUPS.some(function (g) { return g.id === h; }) ? h : "");
 }
 function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
 function shade(hex) { var n = parseInt(hex.slice(1), 16), r = (n >> 16) * .72, g = (n >> 8 & 255) * .72, b = (n & 255) * .72; return "rgb(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + ")"; }
@@ -293,7 +309,7 @@ route();
 var catalogP = fetch("catalog.json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
 fetch("https://api.github.com/repos/" + REPO + "/git/trees/main?recursive=1")
   .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
-  .then(function (j) { return catalogP.then(function (c) { FIX = c.fix || {}; HIDE = c.hide || []; return j; }); })
+  .then(function (j) { return catalogP.then(function (c) { applyCatalog(c); return j; }); })
   .then(function (j) { parse(j.tree.filter(function (i) { return i.type === "blob" && /\.html?$/i.test(i.path); }).map(function (i) { return i.path; })); LOADED = true; route(); })
   .catch(function () { FAILED = true; route(); });
 </script>

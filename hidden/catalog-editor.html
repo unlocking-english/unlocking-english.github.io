@@ -91,7 +91,7 @@ function screenToken(msg){
 async function logic(){
   var html=await (await fetch('../index.html?t='+Date.now())).text();
   var code=html.slice(html.indexOf('var REPO'),html.indexOf('function href('));
-  return new Function(code+';return {BOOKS:BOOKS,parse:parse,data:function(){return DATA;},set:function(f,h){FIX=f;HIDE=h;},grpOf:grpOf,pretty:pretty};')();
+  return new Function(code+';return {books:function(){return BOOKS;},groups:function(){return GROUPS;},apply:applyCatalog,parse:parse,data:function(){return DATA;},grpOf:grpOf,pretty:pretty};')();
 }
 async function init(){
   if(!token()){try{var t=localStorage.getItem('ed:token');if(t)localStorage.setItem(TK,t);}catch(e){}}
@@ -103,27 +103,28 @@ async function init(){
     files=tr.tree.filter(function(i){return i.type==='blob'&&/\.html?$/i.test(i.path);}).map(function(i){shas[i.path]=i.sha;return i.path;});
     var c=await gh('contents/catalog.json');
     if(c){catSha=c.sha;cat=JSON.parse(new TextDecoder().decode(b64d(c.content)));}else{catSha=null;cat={};}
-    cat.fix=cat.fix||{};cat.hide=cat.hide||[];
-    L.set({},[]);L.parse(files);auto={};L.data().forEach(function(d){auto[d.path]=d;});
+    cat.fix=cat.fix||{};cat.hide=cat.hide||[];cat.books=cat.books||[];cat.shelves=cat.shelves||[];
+    reauto();
     render();
   }catch(e){
     if(/^40[13]/.test(e.message))screenToken('GitHub не принял ключ ('+e.message+'). Скорее всего, у ключа нет доступа к репозиторию сайта: инструкция ниже.');
     else app.innerHTML='<div class="card"><p class="st err">Не получилось загрузить: '+esc(e.message)+'</p><button id="rt">Попробовать ещё раз</button></div>',document.getElementById('rt').onclick=init;
   }
 }
-function current(){L.set(cat.fix,[]);L.parse(files);return L.data();}
-function books(){return L.BOOKS.map(function(b){return b.dir;}).filter(function(d,i,a){return a.indexOf(d)===i;});}
-function grpName(g){return {adults:'Adults',teens:'Teens',kids:'Kids'}[g];}
-function bookOf(dir){return L.BOOKS.filter(function(b){return b.dir===dir;})[0]||{dir:dir};}
+function reauto(){L.apply({books:cat.books,shelves:cat.shelves});L.parse(files);auto={};L.data().forEach(function(d){auto[d.path]=d;});}
+function current(){L.apply({fix:cat.fix,books:cat.books,shelves:cat.shelves});L.parse(files);return L.data();}
+function books(){return L.books().map(function(b){return b.dir;}).filter(function(d,i,a){return a.indexOf(d)===i;});}
+function grpName(g){var x=L.groups().filter(function(y){return y.id===g;})[0];return x?x.name:'';}
+function bookOf(dir){return L.books().filter(function(b){return b.dir===dir;})[0]||{dir:dir};}
 function render(){
-  var h='<div class="tabs"><button class="tab" aria-selected="'+(view==='list')+'" data-v="list">Каталог · '+files.length+' файлов</button><button class="tab" aria-selected="'+(view==='up')+'" data-v="up">+ Загрузить файл</button></div>';
-  h+=view==='list'?listHtml():upHtml();
+  var h='<div class="tabs"><button class="tab" aria-selected="'+(view==='list')+'" data-v="list">Каталог · '+files.length+' файлов</button><button class="tab" aria-selected="'+(view==='up')+'" data-v="up">+ Загрузить файл</button><button class="tab" aria-selected="'+(view==='sh')+'" data-v="sh">Полки и учебники</button></div>';
+  h+=view==='list'?listHtml():view==='sh'?shHtml():upHtml();
   app.innerHTML=h;
   if(view==='up')bindUp();
 }
 function listHtml(){
   var D=current(), levels={};D.forEach(function(d){if(d.level)levels[d.level]=1;});
-  var h='<div class="card"><div class="row"><div><label class="f">Полка</label><select id="fg">'+[['','Все'],['adults','Adults'],['teens','Teens'],['kids','Kids'],['hidden','Скрытые'],['changed','Изменённые']].map(function(o){return '<option value="'+o[0]+'"'+(f.grp===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div>'+
+  var h='<div class="card"><div class="row"><div><label class="f">Полка</label><select id="fg">'+[['','Все']].concat(L.groups().map(function(g){return [g.id,g.name];})).concat([['hidden','Скрытые'],['changed','Изменённые']]).map(function(o){return '<option value="'+o[0]+'"'+(f.grp===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div>'+
     '<div><label class="f">Учебник</label><select id="fd"><option value="">Все</option>'+books().map(function(b){return '<option'+(f.dir===b?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></div>'+
     '<div style="flex:2 1 220px"><label class="f">Поиск</label><input type="text" id="fq" placeholder="часть имени файла или названия" value="'+esc(f.q)+'"></div></div>'+
     '<datalist id="lvls">'+Object.keys(levels).sort().map(function(l){return '<option value="'+esc(l)+'">';}).join('')+'</datalist>';
@@ -178,6 +179,36 @@ async function replaceFile(path,btn){
   try{shas[path]=await putFile(path,await readFile(file),'Редактор сайта: новая версия '+path,shas[path]);btn.textContent='Заменено ✓';bar.classList.remove('hide');status('Файл заменён. На сайте обновится через 1–2 минуты.','ok');}
   catch(e){btn.disabled=false;btn.textContent='Заменить файл новой версией';alert('Не получилось: '+e.message+(/^409/.test(e.message)?' Обновите страницу и попробуйте снова.':''));}
 }
+/* ---------- shelves and books ---------- */
+var COLORS=['#3E6A8A','#A4483A','#3F6643','#7B4E8E','#C77A2A','#6F4E37','#9A6B4F','#2F7FA8','#D2603A','#4F9A3E','#B8862A','#8E5AA8','#5E7F5A','#4A3426'];
+function catBook(dir){var x=cat.books.filter(function(b){return b.dir===dir;})[0];if(!x){x={dir:dir};cat.books.push(x);}return x;}
+function catShelf(id){var x=cat.shelves.filter(function(g){return g.id===id;})[0];if(!x){x={id:id};cat.shelves.push(x);}return x;}
+function colorSel(attr,val){return '<select '+attr+'>'+COLORS.map(function(c){return '<option value="'+c+'"'+(c===val?' selected':'')+' style="background:'+c+';color:#fff">'+c+'</option>';}).join('')+(COLORS.indexOf(val)<0&&val?'<option selected value="'+esc(val)+'">'+esc(val)+'</option>':'')+'</select>';}
+function shHtml(){
+  current();var G=L.groups(),B=L.books().filter(function(b){return b.dir!=='Other';}),cnt={};L.data().forEach(function(d){cnt[d.dir]=(cnt[d.dir]||0)+1;});
+  var h='<div class="card"><h2>Полки</h2><p class="muted">Разделы на главной странице сайта. Новую полку можно назвать как угодно: например «Exam prep» или «Grammar for teens».</p>';
+  G.forEach(function(g){h+='<div class="it"><div class="grid4" style="grid-template-columns:1fr 2fr 1fr"><div><label class="f">Название</label><input type="text" data-sh="name" data-id="'+esc(g.id)+'" value="'+esc(g.name)+'"></div><div><label class="f">Подпись</label><input type="text" data-sh="sub" data-id="'+esc(g.id)+'" value="'+esc(g.sub||'')+'"></div><div><label class="f">Цвет</label>'+colorSel('data-sh="color" data-id="'+esc(g.id)+'"',g.color)+'</div></div><p class="muted" style="margin:6px 0 0">Учебников на полке: '+B.filter(function(b){return L.grpOf(b)===g.id;}).length+(['adults','teens','kids'].indexOf(g.id)<0?' · <a href="#" data-delsh="'+esc(g.id)+'">удалить полку</a>':'')+'</p></div>';});
+  h+='<div class="row" style="margin-top:12px"><div><label class="f">Новая полка</label><input type="text" id="nsn" placeholder="Exam prep"></div><div style="flex:2 1 220px"><label class="f">Подпись</label><input type="text" id="nss" placeholder="ОГЭ, ЕГЭ, международные экзамены"></div><div style="flex:0 0 auto"><button id="nsadd">+ Добавить полку</button></div></div></div>';
+  h+='<div class="card"><h2>Учебники и разделы</h2><p class="muted">Карточки на полках. Чтобы перенести учебник на другую полку, выберите её. Новый учебник сразу появляется на полке с пометкой «Coming soon». Файлы в него можно загрузить во вкладке «Загрузить файл» или перенести туда урок в каталоге.</p>';
+  B.forEach(function(b){var D=esc(b.dir);h+='<div class="it"><div class="p">Ключ: '+D+' · файлов: '+(cnt[b.dir]||0)+'</div><div class="grid4"><div><label class="f">Название на карточке</label><input type="text" data-bk="name" data-dir="'+D+'" value="'+esc(b.name)+'"></div><div><label class="f">Подпись</label><input type="text" data-bk="sub" data-dir="'+D+'" value="'+esc(b.sub||'')+'"></div><div><label class="f">Полка</label><select data-bk="grp" data-dir="'+D+'">'+G.map(function(g){return '<option value="'+esc(g.id)+'"'+(L.grpOf(b)===g.id?' selected':'')+'>'+esc(g.name)+'</option>';}).join('')+'</select></div><div><label class="f">Цвет</label>'+colorSel('data-bk="color" data-dir="'+D+'"',b.color)+'</div></div></div>';});
+  h+='<div class="row" style="margin-top:12px"><div><label class="f">Новый учебник: ключ латиницей</label><input type="text" id="nbd" placeholder="Outcomes · Focus · Exam Prep"></div><div><label class="f">Название на карточке</label><input type="text" id="nbn" placeholder="как ключ"></div><div><label class="f">Полка</label><select id="nbg">'+G.map(function(g){return '<option value="'+esc(g.id)+'">'+esc(g.name)+'</option>';}).join('')+'</select></div><div style="flex:0 0 auto"><button id="nbadd">+ Добавить учебник</button></div></div>'+
+    '<p class="muted">Ключ — это начало имени файлов этого учебника: для ключа «Exam Prep» файлы будут называться Exam-Prep-B1_….html. Редактор сам даст такие имена при загрузке.</p></div>';
+  return h;
+}
+app.addEventListener('change',function(e){var t=e.target,k;
+  if((k=t.getAttribute('data-sh'))){catShelf(t.getAttribute('data-id'))[k]=t.value.trim();setDirty(true);if(k!=='sub')keep(render);}
+  else if((k=t.getAttribute('data-bk'))){catBook(t.getAttribute('data-dir'))[k]=t.value.trim();setDirty(true);if(k==='grp')keep(render);}
+});
+app.addEventListener('click',function(e){var t=e.target;
+  if(t.id==='nsadd'){var n=document.getElementById('nsn').value.trim();if(!n){alert('Впишите название полки.');return;}var id=slugify(n)||('shelf-'+Date.now());if(L.groups().some(function(g){return g.id===id;})){alert('Такая полка уже есть.');return;}
+    cat.shelves.push({id:id,name:n,sub:document.getElementById('nss').value.trim(),color:COLORS[(L.groups().length*3)%COLORS.length]});setDirty(true);keep(render);}
+  else if(t.id==='nbadd'){var d=document.getElementById('nbd').value.trim().replace(/[\/]/g,' ').replace(/\s+/g,' ');if(!/^[A-Za-z0-9][A-Za-z0-9 '’+&.-]*$/.test(d)){alert('Ключ пишется латиницей: например Outcomes или Exam Prep.');return;}
+    if(books().some(function(b){return b.toLowerCase()===d.toLowerCase();})){alert('Такой учебник уже есть.');return;}
+    cat.books.push({dir:d,name:document.getElementById('nbn').value.trim()||d,sub:'',grp:document.getElementById('nbg').value,color:COLORS[(L.books().length*5)%COLORS.length]});setDirty(true);keep(render);}
+  else if(t.getAttribute('data-delsh')){e.preventDefault();var id=t.getAttribute('data-delsh');
+    if(L.books().some(function(b){return L.grpOf(b)===id;})){alert('Сначала перенесите учебники с этой полки на другую.');return;}
+    if(!confirm('Удалить полку?'))return;cat.shelves=cat.shelves.filter(function(g){return g.id!==id;});setDirty(true);keep(render);}
+});
 /* ---------- upload ---------- */
 var up={file:null,dir:'',level:'',unit:'',topic:'',hw:false,name:'',edited:false};
 function slugify(s){return String(s).toLowerCase().replace(/['’]/g,'').replace(/\+/g,'plus').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
@@ -213,7 +244,7 @@ function bindUp(){
     var b=this;b.disabled=true;g('upst').textContent='Загружаю…';
     try{
       shas[name]=await putFile(name,await readFile(up.file),'Редактор сайта: '+(shas[name]?'новая версия ':'новый файл ')+name,shas[name]);
-      if(files.indexOf(name)<0)files.push(name);L.set({},[]);L.parse(files);auto={};L.data().forEach(function(d){auto[d.path]=d;});
+      if(files.indexOf(name)<0)files.push(name);reauto();
       var link=location.origin+'/'+enc(name);
       g('upst').className='st ok';g('upst').innerHTML='Загружено ✓ Появится на сайте через 1–2 минуты: <a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(link)+'</a>';
       up={file:null,dir:up.dir,level:up.level,unit:'',topic:'',hw:false,name:'',edited:false};
@@ -225,7 +256,8 @@ document.getElementById('save').onclick=async function(){
   if(busy||!dirty)return;busy=true;this.disabled=true;status('Сохраняю…');
   try{
     Object.keys(cat.fix).forEach(function(k){if(!Object.keys(cat.fix[k]).length)delete cat.fix[k];});
-    var text=JSON.stringify({fix:cat.fix,hide:cat.hide},null,1)+'\n';
+    var out={fix:cat.fix,hide:cat.hide};if(cat.shelves.length)out.shelves=cat.shelves;if(cat.books.length)out.books=cat.books;
+    var text=JSON.stringify(out,null,1)+'\n';
     catSha=await putFile('catalog.json',new TextEncoder().encode(text),'Редактор сайта: каталог',catSha);
     setDirty(false);status('Сохранено ✓ Сайт обновится через 1–2 минуты.','ok');
   }catch(e){status(/^409/.test(e.message)?'Каталог изменился с другого устройства. Обновите страницу и внесите правку заново.':'Не сохранилось: '+e.message,'err');}
