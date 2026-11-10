@@ -1442,6 +1442,7 @@ function sayIt(key, lines, name) {
   return card;
 }
 
+const altsOf = a => expandAlt("[" + a + "]");
 function expandAlt(s) { const m = s.match(/\[([^\[\]]*)\]/); if (!m) return [s]; return m[1].split("|").flatMap(o => expandAlt(s.replace(m[0], o))); }
 function normEn(s) {
   s = String(s).toLowerCase().replace(/[’‘`´]/g, "'").replace(/[.!?,;:"«»]/g, " ").replace(/\s+/g, " ").trim();
@@ -1456,11 +1457,11 @@ function ruEn(key, items, name, cfg) {
   cfg = cfg || {};
   const st = items.map(() => ({ done: false, shown: false, tries: [] }));
   const list = h("div", { class: "list" }, ...items.map((it, i) => {
-    const acc = expandAlt(it.a).map(normEn);
+    const acc = altsOf(it.a).map(normEn);
     const inp = h("input", { type: "text", class: "gap2 wide", autocomplete: "off", autocapitalize: "off", spellcheck: "false", placeholder: cfg.ph || "Type in English…" });
     const msg = h("span", { class: "fbm" }), hint = h("div", { class: "hint", hidden: true }), why = h("div", { class: "whyok", hidden: true }, "💡 ", it.why);
     const showB = h("button", { class: "abtn keep", type: "button", hidden: true }, "👀 Show the answer");
-    const finish = shown => { st[i].done = true; st[i].shown = shown; inp.readOnly = true; inp.className = "gap2 wide " + (shown ? "shown" : "ok"); why.hidden = false; hint.hidden = true; showB.hidden = true; if (shown) inp.value = expandAlt(it.a)[0].replace(/\b(i|moscow|spain|anna|saturday)\b/g, w => w === "i" ? "I" : w[0].toUpperCase() + w.slice(1)).replace(/^./, c => c.toUpperCase()) + (/^(do|does|are|is|am|how|why|what|where)\b/.test(it.a) ? "?" : "."); };
+    const finish = shown => { st[i].done = true; st[i].shown = shown; inp.readOnly = true; inp.className = "gap2 wide " + (shown ? "shown" : "ok"); why.hidden = false; hint.hidden = true; showB.hidden = true; if (shown) inp.value = altsOf(it.a)[0].replace(/\b(i|moscow|spain|anna|saturday)\b/g, w => w === "i" ? "I" : w[0].toUpperCase() + w.slice(1)).replace(/^./, c => c.toUpperCase()) + (/^(do|does|are|is|am|how|why|what|where)\b/.test(it.a) ? "?" : "."); };
     const check = () => { if (st[i].done || !inp.value.trim()) return; const v = variantsOf(inp.value); st[i].tries.push(inp.value.trim());
       if (v.some(x => acc.includes(x))) { finish(false); soundOk(); say(msg, true); }
       else { inp.className = "gap2 wide no"; shake(inp); soundNo(); say(msg, false); const n = st[i].tries.length;
@@ -1474,7 +1475,7 @@ function ruEn(key, items, name, cfg) {
   }));
   task(key, items.length, () => st.filter(x => x.done).length);
   REPORT.push(() => ["== " + name.toUpperCase() + " — first try: " + st.filter(x => x.done && !x.shown && x.tries.length === 1).length + " / " + items.length + (st.some(x => x.shown) ? ", answers shown: " + st.filter(x => x.shown).length : "") + " ==",
-    ...items.map((it, i) => (st[i].tries.length > 1 || st[i].shown) ? "  " + it.q + " → " + expandAlt(it.a)[0] + (st[i].shown ? "  (answer shown)" : "") + "   [mistakes: " + st[i].tries.slice(0, st[i].done && !st[i].shown ? -1 : undefined).join(" | ") + "]" : null).filter(Boolean)]);
+    ...items.map((it, i) => (st[i].tries.length > 1 || st[i].shown) ? "  " + it.q + " → " + altsOf(it.a)[0] + (st[i].shown ? "  (answer shown)" : "") + "   [mistakes: " + st[i].tries.slice(0, st[i].done && !st[i].shown ? -1 : undefined).join(" | ") + "]" : null).filter(Boolean)]);
   return h("div", { class: "card" }, list, h("p", { class: "small muted", style: "margin:8px 0 0" }, "Type and press Enter. Short forms are OK (I'm / I am, don't / do not). After 2 mistakes you get a hint, after 3 — the answer. · Пиши и жми Enter. Сокращения можно. После 2 ошибок — подсказка, после 3 — ответ."));
 }
 
