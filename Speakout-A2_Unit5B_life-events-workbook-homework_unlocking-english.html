@@ -1360,33 +1360,55 @@ function normEn(s) {
 }
 function variantsOf(s) { const a = normEn(s); return [a, a.replace(/\b(\w+)'s\b/g, "$1 is")]; }
 const BEDO = why => /\bdo\b|does|doesn't|don't|глагол/i.test(why) && !/не глагол|не ГЛАГОЛ/.test(why) ? "do" : "be";
-/* typed translation / transformation with hints */
+/* typed translation / transformation — soft check: numbers (16 = sixteen), small typos, articles, and “my answer is also correct” (Val checks it) */
+const RUEN_NUM = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+function ruenSoft(s) { return normEn(s).replace(/\b[a-z]+\b/g, w => RUEN_NUM[w] !== undefined ? String(RUEN_NUM[w]) : w).replace(/-/g, " ").replace(/\s+/g, " ").trim(); }
+function ruenNoArt(s) { return s.replace(/\b(a|an|the)\b/g, " ").replace(/\s+/g, " ").trim(); }
+function ruenLev(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) { const cur = [i]; for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+  return prev[b.length];
+}
 function ruEn(key, items, name, cfg) {
   cfg = cfg || {};
-  const st = items.map(() => ({ done: false, shown: false, tries: [] }));
+  const st = items.map(() => ({ done: false, shown: false, self: false, note: "", tries: [] }));
   const list = h("div", { class: "list" }, ...items.map((it, i) => {
-    const acc = expandAlt(it.a).map(normEn);
+    const raw = expandAlt(it.a), acc = raw.map(ruenSoft), accNA = acc.map(ruenNoArt);
     const inp = h("input", { type: "text", class: "gap2 wide", autocomplete: "off", autocapitalize: "off", spellcheck: "false", placeholder: cfg.ph || "Type in English…" });
     const msg = h("span", { class: "fbm" }), hint = h("div", { class: "hint", hidden: true }), why = h("div", { class: "whyok", hidden: true }, "💡 ", it.why);
     const showB = h("button", { class: "abtn keep", type: "button", hidden: true }, "👀 Show the answer");
-    const finish = shown => { st[i].done = true; st[i].shown = shown; inp.readOnly = true; inp.className = "gap2 wide " + (shown ? "shown" : "ok"); why.hidden = false; hint.hidden = true; showB.hidden = true; if (shown) inp.value = expandAlt(it.a)[0].replace(/^./, c => c.toUpperCase()) + (/^(do|does|are|is|am|how|why|what|where)\b/.test(it.a) ? "?" : "."); };
-    const check = () => { if (st[i].done || !inp.value.trim()) return; const v = variantsOf(inp.value); st[i].tries.push(inp.value.trim());
-      if (v.some(x => acc.includes(x))) { finish(false); soundOk(); say(msg, true); }
-      else { inp.className = "gap2 wide no"; shake(inp); soundNo(); say(msg, false); const n = st[i].tries.length;
-        if (n >= 2) { hint.hidden = false; hint.textContent = it.hint ? "💡 Hint: " + it.hint : BEDO(it.why) === "do" ? "💡 Hint: there IS an action verb → do / does (+ verb without -s in − and ?)" : "💡 Hint: NO action verb here → am / is / are"; }
-        if (n >= 3) showB.hidden = false; }
+    const selfB = h("button", { class: "abtn keep", type: "button", hidden: true }, "✋ My answer is correct too — Val will check");
+    const nice = s => s.replace(/^./, c => c.toUpperCase()) + (/^(do|does|did|are|is|am|was|were|have|has|can|will|how|why|what|where|when|who)\b/.test(s) ? "?" : ".");
+    const finish = (kind, best) => { st[i].done = true; st[i].shown = kind === "shown"; st[i].self = kind === "self"; inp.readOnly = true;
+      inp.className = "gap2 wide " + (kind === "shown" ? "shown" : "ok"); why.hidden = false; hint.hidden = true; showB.hidden = true; selfB.hidden = true;
+      if (kind === "shown") inp.value = nice(raw[0]);
+      if (kind === "near") { st[i].note = "typo"; msg.className = "fbm ok"; msg.textContent = "✓ Almost! Check the spelling: " + nice(raw[best]); }
+      else if (kind === "art") { st[i].note = "articles"; msg.className = "fbm ok"; msg.textContent = "✓ Good! Check a / an / the: " + nice(raw[best]); }
+      else if (kind === "self") { msg.className = "fbm ok"; msg.textContent = "✓ OK — Val will check your answer. Another possible answer: " + nice(raw[0]); }
+      else if (kind === "ok") say(msg, true); };
+    const check = () => { if (st[i].done || !inp.value.trim()) return; st[i].tries.push(inp.value.trim());
+      const v = variantsOf(inp.value).map(ruenSoft);
+      if (v.some(x => acc.includes(x))) { finish("ok"); soundOk(); refresh(); return; }
+      let best = -1, bd = 99; acc.forEach((a, k) => { const d = Math.min(...v.map(x => ruenLev(x, a))); if (d < bd) { bd = d; best = k; } });
+      if (bd <= (acc[best].length > 14 ? 2 : 1)) { finish("near", best); soundOk(); refresh(); return; }
+      const ai = accNA.indexOf(ruenNoArt(v[0])); if (ai >= 0) { finish("art", ai); soundOk(); refresh(); return; }
+      inp.className = "gap2 wide no"; shake(inp); soundNo(); say(msg, false); const n = st[i].tries.length;
+      if (n >= 2) { hint.hidden = false; selfB.hidden = false; hint.textContent = it.hint ? "💡 Hint: " + it.hint : BEDO(it.why) === "do" ? "💡 Hint: there IS an action verb → do / does (+ verb without -s in − and ?)" : "💡 Hint: NO action verb here → am / is / are"; }
+      if (n >= 3) showB.hidden = false;
       refresh(); };
     inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); check(); } });
     const chk = h("button", { class: "btn small", type: "button", html: ICON.check + "Check" }); chk.addEventListener("click", check);
-    showB.addEventListener("click", () => { if (st[i].done) return; finish(true); refresh(); });
-    return h("div", { class: "q" }, h("span", { class: "qnum" }, String(i + 1)), h("div", { class: "body" }, h("div", { class: "qtext big" }, it.q, it.g ? h("span", { class: "newg" }, " 🆕 ", it.g) : null), h("div", { class: "row-actions" }, inp, chk), msg, hint, why, showB));
+    showB.addEventListener("click", () => { if (st[i].done) return; finish("shown"); refresh(); });
+    selfB.addEventListener("click", () => { if (st[i].done) return; finish("self"); soundOk(); refresh(); });
+    return h("div", { class: "q" }, h("span", { class: "qnum" }, String(i + 1)), h("div", { class: "body" }, h("div", { class: "qtext big" }, it.q, it.g ? h("span", { class: "newg" }, " 🆕 ", it.g) : null), h("div", { class: "row-actions" }, inp, chk), msg, hint, why, selfB, showB));
   }));
   task(key, items.length, () => st.filter(x => x.done).length);
-  REPORT.push(() => ["== " + name.toUpperCase() + " — first try: " + st.filter(x => x.done && !x.shown && x.tries.length === 1).length + " / " + items.length + (st.some(x => x.shown) ? ", answers shown: " + st.filter(x => x.shown).length : "") + " ==",
-    ...items.map((it, i) => (st[i].tries.length > 1 || st[i].shown) ? "  " + it.q + " → " + expandAlt(it.a)[0] + (st[i].shown ? "  (answer shown)" : "") + "   [mistakes: " + st[i].tries.slice(0, st[i].done && !st[i].shown ? -1 : undefined).join(" | ") + "]" : null).filter(Boolean)]);
-  return h("div", { class: "card" }, list, h("p", { class: "small muted", style: "margin:8px 0 0" }, "Type and press Enter. Short forms are OK (I'm / I am, don't / do not). After 2 mistakes you get a hint, after 3 — the answer. · Пиши и жми Enter. Сокращения можно. После 2 ошибок — подсказка, после 3 — ответ."));
+  REPORT.push(() => ["== " + name.toUpperCase() + " — first try: " + st.filter(x => x.done && !x.shown && !x.self && x.tries.length === 1).length + " / " + items.length + (st.some(x => x.shown) ? ", answers shown: " + st.filter(x => x.shown).length : "") + (st.some(x => x.self) ? ", to check: " + st.filter(x => x.self).length : "") + " ==",
+    ...items.map((it, i) => st[i].self ? "  ✋ CHECK: " + it.q + " → student: “" + st[i].tries[st[i].tries.length - 1] + "” (key: " + expandAlt(it.a)[0] + ")   [tries: " + st[i].tries.join(" | ") + "]"
+      : (st[i].tries.length > 1 || st[i].shown || st[i].note) ? "  " + it.q + " → " + expandAlt(it.a)[0] + (st[i].shown ? "  (answer shown)" : "") + (st[i].note ? "  (" + st[i].note + ": “" + st[i].tries[st[i].tries.length - 1] + "”)" : "") + (st[i].tries.length > 1 ? "   [mistakes: " + st[i].tries.slice(0, st[i].done && !st[i].shown ? -1 : undefined).join(" | ") + "]" : "") : null).filter(Boolean)]);
+  return h("div", { class: "card" }, list, h("p", { class: "small muted", style: "margin:8px 0 0" }, "Type and press Enter. Short forms and numbers are OK (I'm / I am, 16 / sixteen); small typos are accepted. After 2 tries you get a hint and can say “my answer is correct too” — Val will check it. After 3 — the answer. · Сокращения и цифры можно, мелкие опечатки засчитываются. После 2 попыток — подсказка и кнопка «мой ответ тоже верный» (Вэл проверит), после 3 — ответ."));
 }
-
 function sayParts(parts, rate) {
   if (!CAN_SPEAK) return;
   try { speechSynthesis.cancel(); parts.forEach(t => { const u = new SpeechSynthesisUtterance(t); if (VOICE) { u.voice = VOICE; u.lang = VOICE.lang; } else u.lang = LESSON.voice; u.rate = rate || 0.9; speechSynthesis.speak(u); }); } catch (e) {}
@@ -1519,12 +1541,12 @@ const ADVERT = [
   ["And we're a friendly place. Lots of students {meet|get} their best friends here! So don't wait. Call us today!", "Многие находят здесь лучших друзей!"]
 ];
 const RUEN = [
-  { q: "Я сдал(а) экзамен по вождению с первого раза.", a: "i passed my driving test [the first time|first time|on my first try|on the first try]", why: "сдать успешно → pass (сдавать → take)", hint: "I passed my …" },
-  { q: "Мы поженились в 2015 году.", a: "we got married in 2015", why: "пожениться → get married (✗ married with)", hint: "We got …" },
-  { q: "Она окончила школу в 16 лет.", a: "she left school [at sixteen|at 16|when she was [16|sixteen]]", why: "окончить школу → leave school (✗ finish the school)", hint: "She left …" },
-  { q: "Я познакомился с женой в университете.", a: "i met my wife at university", why: "познакомиться → meet (met)", hint: "I met …" },
-  { q: "Он хочет стать врачом.", a: "he wants to become a doctor", why: "стать → become a + профессия", hint: "He wants to become …" },
-  { q: "Я научился водить в 18 лет.", a: "i [learnt|learned] to drive [at 18|at eighteen|when i was [18|eighteen]]", why: "научиться → learn to + глагол", hint: "I learnt to …" }
+  { q: "Я сдал(а) экзамен по вождению с первого раза.", a: "i passed [my|the] driving [test|exam] [the first time|first time|on my first try|on the first try|on my first attempt|on the first attempt|at the first attempt|the first try]", why: "сдать успешно → pass (сдавать → take)", hint: "I passed my …" },
+  { q: "Мы поженились в 2015 году.", a: "we [got married|married] in 2015", why: "пожениться → get married (✗ married with)", hint: "We got …" },
+  { q: "Она окончила школу в 16 лет.", a: "she [left|finished] school [at 16|when she was 16|at the age of 16|aged 16]", why: "окончить школу → leave school (✗ finish THE school)", hint: "She left …" },
+  { q: "Я познакомился с женой в университете.", a: "i met my wife [at|in] [university|the university|college]", why: "познакомиться → meet (met)", hint: "I met …" },
+  { q: "Он хочет стать врачом.", a: "he wants to [become|be] a doctor", why: "стать → become a + профессия", hint: "He wants to become …" },
+  { q: "Я научился водить в 18 лет.", a: "i [learnt|learned] [to drive|how to drive|driving] [at 18|when i was 18|at the age of 18|aged 18]", why: "научиться → learn to + глагол", hint: "I learnt to …" }
 ];
 /* listening 5.04 — the audio is Val's file; script transcribed from it */
 const SCRIPT = [
