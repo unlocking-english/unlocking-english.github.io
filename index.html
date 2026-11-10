@@ -36,6 +36,7 @@ a{color:inherit}
 .pill{font-size:13px;font-weight:600;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--muted)}
 a.pill{text-decoration:none;color:var(--coffee);font-size:14px;padding:8px 16px}a.pill:hover{border-color:var(--coffee)}a.pill.on{background:var(--espresso);border-color:var(--espresso);color:#fff}
 .kidsgrp .sec{color:#2F7FA8}
+.teensgrp .sec{color:#3F6643}
 /* how it works */
 .how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:44px}
 .step{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px}
@@ -107,20 +108,33 @@ footer{border-top:1px solid var(--line);padding-block:22px 34px;color:var(--mute
    Add a new book: create a folder with that name on GitHub and add a line here (or it appears automatically). */
 var REPO = "unlocking-english/unlocking-english.github.io";
 var BOOKS = [
+  /* adults shelf */
   { dir: "Speakout", name: "Speakout", sub: "3rd edition · Adults", color: "#3E6A8A" },
   { dir: "Outcomes", name: "Outcomes", sub: "Adults", color: "#A4483A" },
-  { dir: "Get Involved", name: "Get Involved!", sub: "Teens", color: "#3F6643" },
-  { dir: "Metro", name: "Metro", sub: "Teens", color: "#7B4E8E" },
-  { dir: "Go Getter", name: "Go Getter", sub: "Kids & teens", color: "#C77A2A" },
   { dir: "Grammar", name: "Grammar", sub: "Grammar studio · без учебника", color: "#6F4E37" },
   { dir: "Topics", name: "Topics & holidays", sub: "Темы и праздники", color: "#9A6B4F" },
+  /* teens shelf */
+  { dir: "Get Involved", name: "Get Involved!", sub: "Teens · B1", color: "#3F6643", teens: true },
+  { dir: "Metro", name: "Metro", sub: "Teens · 2 (A2) · 3 (B1)", color: "#7B4E8E", teens: true, num: true },
+  { dir: "Go Getter", name: "Go Getter", sub: "Teens · 10–13 лет", color: "#C77A2A", teens: true, num: true, defLevel: "Go Getter 3" },
+  { dir: "Topics Teens", name: "Topics & holidays", sub: "Teens · темы и праздники", color: "#5E7F5A", teens: true },
   /* kids shelf */
   { dir: "Spotlight", name: "Spotlight", sub: "Kids · 8–11 лет", color: "#2F7FA8", kids: true },
   { dir: "Family and Friends", name: "Family and Friends", sub: "Kids · 6–8 лет", color: "#D2603A", kids: true },
-  { dir: "Kid's Box", name: "Kid's Box", sub: "Kids · 7–9 лет · Starters", color: "#4F9A3E", kids: true },
+  { dir: "Kid's Box", name: "Kid's Box", sub: "Kids · 7–9 лет · Starters", color: "#4F9A3E", kids: true, defLevel: "Kid's Box 2" },
   { dir: "British Bulldog", name: "British Bulldog", sub: "Kids · 5–6 класс · конкурс", color: "#B8862A", kids: true },
   { dir: "Topics Kids", name: "Topics & holidays", sub: "Kids · темы, праздники, олимпиады", color: "#8E5AA8", kids: true }
 ];
+/* files whose name doesn't say the book or level: file name → fix (files stay where they are, links keep working) */
+var FIX = {
+  "Speakout_2A_to-the-rescue_past-simple-continuous-homework_unlocking-english.html": { level: "A2+" },
+  "Speakout_Unit2A+_to-the-rescue_past-simple-continuous_unlocking-english.html": { level: "A2+" },
+  "Speakout_trial-test_placement-test1_unlocking-english.html": { level: "Placement test" },
+  "A2. How English questions work in the present, past and future - homework.html": { dir: "Grammar", level: "A2" }
+};
+/* exact duplicates hidden from the catalog (the file still opens by its old link) */
+var HIDE = ["Go-Getter-3_Unit2-4_can-i-try-it-on-shopping-for-clothes(1).html"];
+function grpOf(b) { return b.kids ? "kids" : b.teens ? "teens" : "adults"; }
 var LEVELS = ["starter", "a1", "a1+", "a2", "a2+", "b1", "b1+", "b2", "b2+", "c1", "c2"];
 var TYPES = { lessons: "lessons", lesson: "lessons", "уроки": "lessons", homework: "homework", homeworks: "homework", hw: "homework", "домашки": "homework" };
 var TYPE_LABEL = { lessons: "Lessons · Уроки", homework: "Homework · Домашние задания" };
@@ -149,8 +163,10 @@ function parse(paths) {
     var parts = p.split("/"), file = parts.pop();
     if (!parts.length && /^(index|404)\.html$/i.test(file)) return null;
     if (parts.some(function (x) { return /^hidden$/i.test(x) || /^[_.]/.test(x); })) return null;
-    var dir = parts[0] || guessBook(file), bk = BOOKS.filter(function (x) { return x.dir === dir; })[0];
-    var level = parts[1] || (parts.length ? "" : (bk && bk.kids ? guessKidsLevel(file, bk) : guessLevel(file))), tf = (parts[2] || "").toLowerCase();
+    if (!parts.length && HIDE.indexOf(file) > -1) return null;
+    var fx = (!parts.length && FIX[file]) || {};
+    var dir = fx.dir || parts[0] || guessBook(file), bk = BOOKS.filter(function (x) { return x.dir === dir; })[0];
+    var level = fx.level || parts[1] || (parts.length ? "" : (bk && (bk.kids || bk.num) ? guessKidsLevel(file, bk) : guessLevel(file))) || (bk && bk.defLevel) || "", tf = (parts[2] || "").toLowerCase();
     var type = TYPES[tf] || (parts[2] ? parts[2] : (/homework|\bhw\b/i.test(file) ? "homework" : "lessons"));
     return { path: p, file: file, dir: dir, level: level, type: type, unit: unitOf(file), title: pretty(file) };
   }).filter(Boolean);
@@ -180,9 +196,9 @@ function listByUnit(items, showCourse) {
 }
 
 /* ===== views ===== */
-function shelfOf(kids) {
+function shelfOf(g) {
   var shelf = el("div", "shelf");
-  BOOKS.filter(function (b) { return !!b.kids === kids; }).forEach(function (b) {
+  BOOKS.filter(function (b) { return grpOf(b) === g; }).forEach(function (b) {
     var items = DATA.filter(function (d) { return d.dir === b.dir; });
     if (!items.length && b.dir === "Other") return;
     var card = el("button", "book"); card.type = "button";
@@ -203,7 +219,12 @@ function viewHome(only) {
   var left = el("div"); var logo = el("img", "logo"); logo.src = document.getElementById("homeLogo").src; logo.alt = "Unlocking English with Val"; left.append(logo);
   var right = el("div");
   var h = el("h1");
-  if (only === "kids") {
+  if (only === "teens") {
+    h.innerHTML = "English for <em>teens</em>"; right.append(h);
+    right.append(el("p", null, "Lessons and homework for teenagers: school coursebooks, real-life topics and projects."));
+    right.append(el("p", null, "Уроки и домашние задания для подростков: школьные учебники, живые темы и проекты. Всё работает в браузере — на телефоне, планшете и компьютере."));
+    right.append(el("div", "script", "Unlock your English!"));
+  } else if (only === "kids") {
     h.innerHTML = "English for <em>kids</em>"; right.append(h);
     right.append(el("p", null, "Lessons and homework for young learners: open a task, play, learn and unlock every key."));
     right.append(el("p", null, "Уроки и домашние задания для детей: откройте задание, играйте, учитесь и открывайте ключи. Всё работает в браузере — на телефоне, планшете и компьютере."));
@@ -215,7 +236,7 @@ function viewHome(only) {
     right.append(el("div", "script", "Every lesson is a key."));
   }
   var kl = el("div", "keyline");
-  [["Adults & Teens", "adults"], ["Kids", "kids"]].forEach(function (x) { var a = el("a", "pill jump" + (only === x[1] ? " on" : ""), x[0]); a.href = "#" + x[1]; kl.append(a); });
+  [["Adults", "adults"], ["Teens", "teens"], ["Kids", "kids"]].forEach(function (x) { var a = el("a", "pill jump" + (only === x[1] ? " on" : ""), x[0]); a.href = "#" + x[1]; kl.append(a); });
   right.append(kl);
   hero.append(left, right); w.append(hero);
   var how = el("section", "how");
@@ -223,13 +244,15 @@ function viewHome(only) {
     var d = el("div", "step"); d.append(el("span", "n", s[0]), el("b", null, s[1])); var p = el("p", null, ""); p.append(el("span", "ru", s[2])); d.append(p); how.append(d); });
   w.append(how);
   if (FAILED) w.append(el("div", "empty", "Could not load the list of tasks. Please refresh the page in a minute. · Не удалось загрузить список заданий. Обновите страницу через минуту."));
-  if (only !== "kids") { var s1 = el("section", "grp"); s1.id = "adults-shelf"; s1.append(el("h2", "sec", "Adults & Teens"), el("p", "secsub", "Взрослые и подростки · учебники и материалы"), shelfOf(false)); w.append(s1); }
-  if (only !== "adults") { var s2 = el("section", "grp kidsgrp"); s2.id = "kids-shelf"; s2.append(el("h2", "sec", "Kids"), el("p", "secsub", "Дети · учебники, темы и подготовка к конкурсам"), shelfOf(true)); w.append(s2); }
+  [["adults", "Adults", "Взрослые · учебники, грамматика и темы", ""], ["teens", "Teens", "Подростки · школьные учебники, темы и проекты", " teensgrp"], ["kids", "Kids", "Дети · учебники, темы и подготовка к конкурсам", " kidsgrp"]].forEach(function (g) {
+    if (only && only !== g[0]) return;
+    var s = el("section", "grp" + g[3]); s.id = g[0] + "-shelf"; s.append(el("h2", "sec", g[1]), el("p", "secsub", g[2]), shelfOf(g[0])); w.append(s);
+  });
   app.append(w); window.scrollTo(0, 0);
 }
 function viewBook(b, onlyLevel) {
   var app = document.getElementById("app"); app.innerHTML = "";
-  var w = el("div", "wrap"), back = el("button", "back", b.kids ? "← Kids · Все детские учебники" : "← All books · Все учебники"); back.type = "button"; back.addEventListener("click", function () { location.hash = b.kids ? "kids" : ""; });
+  var w = el("div", "wrap"), back = el("button", "back", b.kids ? "← Kids · Все детские учебники" : b.teens ? "← Teens · Все учебники для подростков" : "← All books · Все учебники"); back.type = "button"; back.addEventListener("click", function () { location.hash = b.kids ? "kids" : b.teens ? "teens" : ""; });
   var head = el("div", "chead"); head.append(el("h1", null, b.name), el("span", "sub", b.sub || "")); w.append(back, head);
   var items = DATA.filter(function (d) { return d.dir === b.dir; });
   if (!items.length) { w.append(el("div", "empty", LOADED ? "Coming soon · Скоро здесь появятся уроки и домашние задания." : "Loading… · Загружаю…")); app.append(w); return; }
@@ -264,7 +287,7 @@ function route() {
   if (q) return viewSearch(q);
   var h = decodeURIComponent(location.hash.slice(1));
   var b = BOOKS.filter(function (x) { return slug(x.dir) === h; })[0];
-  b ? viewBook(b) : viewHome(h === "kids" || h === "adults" ? h : "");
+  b ? viewBook(b) : viewHome(h === "kids" || h === "adults" || h === "teens" ? h : "");
 }
 function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
 function shade(hex) { var n = parseInt(hex.slice(1), 16), r = (n >> 16) * .72, g = (n >> 8 & 255) * .72, b = (n & 255) * .72; return "rgb(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + ")"; }
