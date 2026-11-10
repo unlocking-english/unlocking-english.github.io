@@ -125,15 +125,9 @@ var BOOKS = [
   { dir: "British Bulldog", name: "British Bulldog", sub: "Kids · 5–6 класс · конкурс", color: "#B8862A", kids: true },
   { dir: "Topics Kids", name: "Topics & holidays", sub: "Kids · темы, праздники, олимпиады", color: "#8E5AA8", kids: true }
 ];
-/* files whose name doesn't say the book or level: file name → fix (files stay where they are, links keep working) */
-var FIX = {
-  "Speakout_2A_to-the-rescue_past-simple-continuous-homework_unlocking-english.html": { level: "A2+" },
-  "Speakout_Unit2A+_to-the-rescue_past-simple-continuous_unlocking-english.html": { level: "A2+" },
-  "Speakout_trial-test_placement-test1_unlocking-english.html": { level: "Placement test" },
-  "A2. How English questions work in the present, past and future - homework.html": { dir: "Grammar", level: "A2" }
-};
-/* exact duplicates hidden from the catalog (the file still opens by its old link) */
-var HIDE = ["Go-Getter-3_Unit2-4_can-i-try-it-on-shopping-for-clothes(1).html"];
+/* catalog.json (edited in hidden/catalog-editor.html): path → {dir, level, type, title} fixes and hidden files.
+   Files stay where they are, so links already sent to students keep working. */
+var FIX = {}, HIDE = [];
 function grpOf(b) { return b.kids ? "kids" : b.teens ? "teens" : "adults"; }
 var LEVELS = ["starter", "a1", "a1+", "a2", "a2+", "b1", "b1+", "b2", "b2+", "c1", "c2"];
 var TYPES = { lessons: "lessons", lesson: "lessons", "уроки": "lessons", homework: "homework", homeworks: "homework", hw: "homework", "домашки": "homework" };
@@ -163,12 +157,12 @@ function parse(paths) {
     var parts = p.split("/"), file = parts.pop();
     if (!parts.length && /^(index|404)\.html$/i.test(file)) return null;
     if (parts.some(function (x) { return /^hidden$/i.test(x) || /^[_.]/.test(x); })) return null;
-    if (!parts.length && HIDE.indexOf(file) > -1) return null;
-    var fx = (!parts.length && FIX[file]) || {};
+    if (HIDE.indexOf(p) > -1) return null;
+    var fx = FIX[p] || {};
     var dir = fx.dir || parts[0] || guessBook(file), bk = BOOKS.filter(function (x) { return x.dir === dir; })[0];
     var level = fx.level || parts[1] || (parts.length ? "" : (bk && (bk.kids || bk.num) ? guessKidsLevel(file, bk) : guessLevel(file))) || (bk && bk.defLevel) || "", tf = (parts[2] || "").toLowerCase();
-    var type = TYPES[tf] || (parts[2] ? parts[2] : (/homework|\bhw\b/i.test(file) ? "homework" : "lessons"));
-    return { path: p, file: file, dir: dir, level: level, type: type, unit: unitOf(file), title: pretty(file) };
+    var type = fx.type || TYPES[tf] || (parts[2] ? parts[2] : (/homework|\bhw\b/i.test(file) ? "homework" : "lessons"));
+    return { path: p, file: file, dir: dir, level: level, type: type, unit: unitOf(file), title: fx.title || pretty(file) };
   }).filter(Boolean);
   DATA.forEach(function (d) { if (!BOOKS.some(function (b) { return b.dir === d.dir; })) BOOKS.push({ dir: d.dir, name: d.dir === "Other" ? "Other · Другое" : d.dir, sub: "", color: "#7A6555" }); });
 }
@@ -296,8 +290,10 @@ document.getElementById("homeLogo").addEventListener("click", function () { docu
 document.getElementById("q").addEventListener("input", route);
 window.addEventListener("hashchange", route);
 route();
+var catalogP = fetch("catalog.json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
 fetch("https://api.github.com/repos/" + REPO + "/git/trees/main?recursive=1")
   .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
+  .then(function (j) { return catalogP.then(function (c) { FIX = c.fix || {}; HIDE = c.hide || []; return j; }); })
   .then(function (j) { parse(j.tree.filter(function (i) { return i.type === "blob" && /\.html?$/i.test(i.path); }).map(function (i) { return i.path; })); LOADED = true; route(); })
   .catch(function () { FAILED = true; route(); });
 </script>

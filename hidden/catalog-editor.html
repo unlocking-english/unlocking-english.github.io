@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Редактор сайта · Unlocking English with Val</title>
+<link href="https://fonts.googleapis.com/css2?family=Marck+Script&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{--besh:#F9F6F0;--paper:#fff;--sand:#EFE6DC;--hazelnut:#CFB59E;--coffee:#6F4E37;--espresso:#4A3426;--ink:#3B2A1F;--muted:#7A6555;--line:#E6DCD0;--mist:#E4EEF5;--denim:#3E6A8A;--ok:#3F6643;--err:#A4483A;
+--f-display:"Playfair Display",Georgia,serif;--f-sans:"Montserrat",system-ui,sans-serif;--f-script:"Marck Script",cursive}
+*{box-sizing:border-box}body{margin:0;background:var(--besh);color:var(--ink);font:15px/1.5 var(--f-sans)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 120px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+header a{color:var(--denim);font-weight:600;font-size:13px}
+.script{font:22px/1 var(--f-script);color:var(--coffee);margin-top:16px}
+h1{font:700 30px/1.15 var(--f-display);margin:4px 0 6px}
+h2{font:700 20px/1.2 var(--f-display);margin:0 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:16px;box-shadow:0 8px 24px rgba(74,52,38,.06)}
+input[type=text],input[type=password],select{width:100%;border:1px solid var(--hazelnut);border-radius:12px;padding:9px 11px;font:14px var(--f-sans);color:var(--ink);background:#fff;min-width:0}
+label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px}
+button{font:600 14px var(--f-sans);border-radius:999px;padding:9px 16px;cursor:pointer;border:1px solid var(--coffee);background:var(--sand);color:var(--ink)}
+button.main{background:var(--coffee);color:#fff}button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.row>div{flex:1 1 160px;min-width:0}
+.tabs{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.tab{background:var(--paper);border-color:var(--line)}.tab[aria-selected=true]{background:var(--espresso);border-color:var(--espresso);color:#fff}
+.it{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;background:#FDFBF8}
+.it.ch{border-color:var(--coffee);box-shadow:0 0 0 2px rgba(111,78,55,.12)}
+.it.hid{opacity:.6}
+.it .t{font-weight:600;word-break:break-word}.it .t a{color:var(--ink)}
+.it .p{font-size:11px;color:var(--muted);word-break:break-all;margin-bottom:6px}
+.grid4{display:grid;grid-template-columns:1.2fr 1fr .9fr 1.6fr;gap:8px;align-items:end}
+.ctl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.ctl label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.up{font-size:12px;padding:6px 12px}
+.savebar{position:fixed;left:0;right:0;bottom:0;background:rgba(249,246,240,.96);border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.st{font-size:13px;color:var(--muted)}.st.ok{color:var(--ok)}.st.err{color:var(--err)}
+.fname{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.hide{display:none!important}
+details summary{cursor:pointer;color:var(--denim);font-weight:600}
+ol.steps{padding-left:20px}ol.steps li{margin:4px 0}
+code{background:var(--sand);padding:1px 5px;border-radius:6px}
+@media (max-width:700px){.grid4{grid-template-columns:1fr 1fr}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><b style="font-family:var(--f-display);font-size:18px">Unlocking English <span style="font-family:var(--f-script);color:var(--coffee)">with Val</span></b><a href="../">← На сайт</a></header>
+  <div class="script">Hi, Val!</div><h1>Редактор сайта</h1>
+  <p class="muted">Перенести урок на другую полку или уровень, переименовать, скрыть, заменить файл новой версией или загрузить новый. Имя файла не меняется, поэтому ссылки у учеников продолжают работать.</p>
+  <div id="app"></div>
+</div>
+<div class="savebar hide" id="bar"><span class="st" id="st"></span><button class="main" id="save">Сохранить каталог</button></div>
+<script>
+(function(){
+var OWNER='unlocking-english', REPO='unlocking-english.github.io', API='https://api.github.com/repos/'+OWNER+'/'+REPO+'/', TK='cat:token';
+var app=document.getElementById('app'), bar=document.getElementById('bar'), st=document.getElementById('st');
+var L=null, files=[], shas={}, auto={}, cat={fix:{},hide:[]}, catSha=null, dirty=false, busy=false, view='list', f={grp:'',dir:'',q:''};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function token(){try{return localStorage.getItem(TK)||'';}catch(e){return '';}}
+function status(t,c){st.textContent=t;st.className='st'+(c?' '+c:'');}
+function setDirty(v){dirty=v;bar.classList.toggle('hide',!v&&!st.textContent);if(v)status('Есть несохранённые изменения');}
+window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+function enc(p){return p.split('/').map(encodeURIComponent).join('/');}
+function b64e(u){var s='',C=0x8000;for(var i=0;i<u.length;i+=C)s+=String.fromCharCode.apply(null,u.subarray(i,i+C));return btoa(s);}
+function b64d(s){var r=atob(s.replace(/\s/g,'')),u=new Uint8Array(r.length);for(var i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u;}
+async function gh(path,opt){
+  opt=opt||{};opt.headers={'Authorization':'Bearer '+token(),'Accept':'application/vnd.github+json'};
+  var r=await fetch(API+path,opt);
+  if(r.status===404&&!opt.method)return null;
+  if(!r.ok){var t='';try{t=(await r.json()).message;}catch(e){}throw new Error(r.status+(t?' · '+t:''));}
+  return r.json();
+}
+async function putFile(path,bytes,msg,sha){
+  var body={message:msg,content:b64e(bytes),branch:'main'};if(sha)body.sha=sha;
+  var j=await gh('contents/'+enc(path),{method:'PUT',body:JSON.stringify(body)});return j.content.sha;
+}
+var HOWTO='<details><summary>Как дать ключу доступ к сайту (2 минуты)</summary><ol class="steps">'+
+  '<li>Откройте <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a> и нажмите на свой ключ «Редактор кабинетов» (или создайте новый).</li>'+
+  '<li><b>Repository access</b>: Only select repositories → добавьте <code>unlocking-english.github.io</code> (Students оставьте).</li>'+
+  '<li><b>Permissions</b> → Repository permissions → <b>Contents</b>: Read and write. Сохраните.</li>'+
+  '<li>Если ключ тот же, вставлять его заново не нужно: на этом устройстве он подхватится сам из редактора кабинетов. Иначе вставьте новый (начинается с <code>github_pat_</code>).</li></ol></details>';
+function screenToken(msg){
+  bar.classList.add('hide');
+  app.innerHTML='<div class="card"><h2>Ключ доступа</h2><p class="muted">Чтобы сохранять изменения на сайт, нужен ваш ключ GitHub с доступом к репозиторию сайта.</p>'+(msg?'<p class="st err">'+esc(msg)+'</p>':'')+
+    '<label class="f">Ключ GitHub</label><input type="password" id="tk" placeholder="github_pat_…" autocomplete="off"><div class="row" style="margin-top:12px"><button class="main" id="tks">Сохранить ключ</button></div><div style="margin-top:14px">'+HOWTO+'</div></div>';
+  document.getElementById('tks').onclick=function(){var v=document.getElementById('tk').value.trim();if(!v)return;try{localStorage.setItem(TK,v);}catch(e){}init();};
+}
+/* the catalog logic lives in ../index.html: reuse it so the editor shows exactly what the site shows */
+async function logic(){
+  var html=await (await fetch('../index.html?t='+Date.now())).text();
+  var code=html.slice(html.indexOf('var REPO'),html.indexOf('function href('));
+  return new Function(code+';return {BOOKS:BOOKS,parse:parse,data:function(){return DATA;},set:function(f,h){FIX=f;HIDE=h;},grpOf:grpOf,pretty:pretty};')();
+}
+async function init(){
+  if(!token()){try{var t=localStorage.getItem('ed:token');if(t)localStorage.setItem(TK,t);}catch(e){}}
+  if(!token())return screenToken();
+  app.innerHTML='<div class="card"><p class="muted">Загружаю список файлов…</p></div>';
+  try{
+    L=await logic();
+    var tr=await gh('git/trees/main?recursive=1');shas={};
+    files=tr.tree.filter(function(i){return i.type==='blob'&&/\.html?$/i.test(i.path);}).map(function(i){shas[i.path]=i.sha;return i.path;});
+    var c=await gh('contents/catalog.json');
+    if(c){catSha=c.sha;cat=JSON.parse(new TextDecoder().decode(b64d(c.content)));}else{catSha=null;cat={};}
+    cat.fix=cat.fix||{};cat.hide=cat.hide||[];
+    L.set({},[]);L.parse(files);auto={};L.data().forEach(function(d){auto[d.path]=d;});
+    render();
+  }catch(e){
+    if(/^40[13]/.test(e.message))screenToken('GitHub не принял ключ ('+e.message+'). Скорее всего, у ключа нет доступа к репозиторию сайта: инструкция ниже.');
+    else app.innerHTML='<div class="card"><p class="st err">Не получилось загрузить: '+esc(e.message)+'</p><button id="rt">Попробовать ещё раз</button></div>',document.getElementById('rt').onclick=init;
+  }
+}
+function current(){L.set(cat.fix,[]);L.parse(files);return L.data();}
+function books(){return L.BOOKS.map(function(b){return b.dir;}).filter(function(d,i,a){return a.indexOf(d)===i;});}
+function grpName(g){return {adults:'Adults',teens:'Teens',kids:'Kids'}[g];}
+function bookOf(dir){return L.BOOKS.filter(function(b){return b.dir===dir;})[0]||{dir:dir};}
+function render(){
+  var h='<div class="tabs"><button class="tab" aria-selected="'+(view==='list')+'" data-v="list">Каталог · '+files.length+' файлов</button><button class="tab" aria-selected="'+(view==='up')+'" data-v="up">+ Загрузить файл</button></div>';
+  h+=view==='list'?listHtml():upHtml();
+  app.innerHTML=h;
+  if(view==='up')bindUp();
+}
+function listHtml(){
+  var D=current(), levels={};D.forEach(function(d){if(d.level)levels[d.level]=1;});
+  var h='<div class="card"><div class="row"><div><label class="f">Полка</label><select id="fg">'+[['','Все'],['adults','Adults'],['teens','Teens'],['kids','Kids'],['hidden','Скрытые'],['changed','Изменённые']].map(function(o){return '<option value="'+o[0]+'"'+(f.grp===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label class="f">Учебник</label><select id="fd"><option value="">Все</option>'+books().map(function(b){return '<option'+(f.dir===b?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></div>'+
+    '<div style="flex:2 1 220px"><label class="f">Поиск</label><input type="text" id="fq" placeholder="часть имени файла или названия" value="'+esc(f.q)+'"></div></div>'+
+    '<datalist id="lvls">'+Object.keys(levels).sort().map(function(l){return '<option value="'+esc(l)+'">';}).join('')+'</datalist>';
+  var q=f.q.toLowerCase(), shown=D.filter(function(d){
+    var hid=cat.hide.indexOf(d.path)>-1, b=bookOf(d.dir);
+    if(f.grp==='hidden'&&!hid)return false;if(f.grp==='changed'&&!cat.fix[d.path])return false;
+    if(f.grp&&f.grp!=='hidden'&&f.grp!=='changed'&&L.grpOf(b)!==f.grp)return false;
+    if(f.dir&&d.dir!==f.dir)return false;
+    if(q&&(d.path+' '+d.title).toLowerCase().indexOf(q)<0)return false;return true;});
+  shown.sort(function(a,b){return a.dir.localeCompare(b.dir)||String(a.level).localeCompare(String(b.level))||a.unit.k-b.unit.k||a.title.localeCompare(b.title);});
+  h+='<p class="muted" style="margin:10px 0 0">Показано: '+shown.length+'. Поля, которые вы не меняли, сайт заполняет сам по имени файла.</p>';
+  shown.forEach(function(d){
+    var a=auto[d.path]||d, fx=cat.fix[d.path]||{}, hid=cat.hide.indexOf(d.path)>-1, P=esc(d.path);
+    h+='<div class="it'+(fx&&Object.keys(fx).length?' ch':'')+(hid?' hid':'')+'"><div class="t"><a href="../'+enc(d.path)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a></div><div class="p">'+P+'</div>'+
+      '<div class="grid4"><div><label class="f">Учебник · '+esc(grpName(L.grpOf(bookOf(d.dir)))||'')+'</label><select data-k="dir" data-p="'+P+'">'+books().map(function(b){return '<option'+(b===d.dir?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></div>'+
+      '<div><label class="f">Уровень</label><input type="text" list="lvls" data-k="level" data-p="'+P+'" value="'+esc(d.level)+'" placeholder="'+esc(a.level||'без уровня')+'"></div>'+
+      '<div><label class="f">Тип</label><select data-k="type" data-p="'+P+'"><option value="lessons"'+(d.type==='lessons'?' selected':'')+'>Урок</option><option value="homework"'+(d.type==='homework'?' selected':'')+'>Домашка</option></select></div>'+
+      '<div><label class="f">Название на сайте</label><input type="text" data-k="title" data-p="'+P+'" value="'+esc(fx.title||'')+'" placeholder="'+esc(a.title)+'"></div></div>'+
+      '<div class="ctl"><label><input type="checkbox" data-k="hide" data-p="'+P+'"'+(hid?' checked':'')+'> скрыть с сайта</label>'+
+      '<button class="up" data-rep="'+P+'">Заменить файл новой версией</button>'+(fx&&Object.keys(fx).length?'<button class="up" data-reset="'+P+'">Вернуть как было</button>':'')+'</div></div>';
+  });
+  return h+'</div>';
+}
+function setField(path,k,v){
+  var a=auto[path]||{}, fx=cat.fix[path]||{};
+  if(k==='hide'){var i=cat.hide.indexOf(path);if(v&&i<0)cat.hide.push(path);if(!v&&i>-1)cat.hide.splice(i,1);}
+  else{v=String(v).trim();if(!v||v===String(a[k]==null?'':a[k]))delete fx[k];else fx[k]=v;
+    if(Object.keys(fx).length)cat.fix[path]=fx;else delete cat.fix[path];}
+  setDirty(true);
+}
+app.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.id==='fg'||t.id==='fd'){f.grp=document.getElementById('fg').value;f.dir=document.getElementById('fd').value;keep(render);return;}
+  var p=t.getAttribute('data-p'),k=t.getAttribute('data-k');if(!p||!k)return;
+  setField(p,k,k==='hide'?t.checked:t.value);
+  if(k==='dir'||k==='hide')keep(render);
+});
+app.addEventListener('input',function(e){if(e.target.id==='fq'){f.q=e.target.value;var pos=e.target.selectionStart;render();var x=document.getElementById('fq');x.focus();x.setSelectionRange(pos,pos);}});
+app.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.getAttribute('data-v')){view=t.getAttribute('data-v');render();return;}
+  if(t.getAttribute('data-reset')){delete cat.fix[t.getAttribute('data-reset')];setDirty(true);keep(render);return;}
+  if(t.getAttribute('data-rep')){replaceFile(t.getAttribute('data-rep'),t);return;}
+});
+function keep(fn){var y=window.scrollY;fn();window.scrollTo(0,y);}
+function pick(accept){return new Promise(function(res){var i=document.createElement('input');i.type='file';i.accept=accept||'.html,.htm';i.onchange=function(){res(i.files[0]||null);};i.click();});}
+function readFile(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(new Uint8Array(r.result));};r.onerror=rej;r.readAsArrayBuffer(file);});}
+async function replaceFile(path,btn){
+  var file=await pick();if(!file)return;
+  if(!confirm('Заменить «'+path+'» файлом «'+file.name+'»? Ссылка останется прежней, ученики увидят новую версию.'))return;
+  btn.disabled=true;btn.textContent='Загружаю…';
+  try{shas[path]=await putFile(path,await readFile(file),'Редактор сайта: новая версия '+path,shas[path]);btn.textContent='Заменено ✓';bar.classList.remove('hide');status('Файл заменён. На сайте обновится через 1–2 минуты.','ok');}
+  catch(e){btn.disabled=false;btn.textContent='Заменить файл новой версией';alert('Не получилось: '+e.message+(/^409/.test(e.message)?' Обновите страницу и попробуйте снова.':''));}
+}
+/* ---------- upload ---------- */
+var up={file:null,dir:'',level:'',unit:'',topic:'',hw:false,name:'',edited:false};
+function slugify(s){return String(s).toLowerCase().replace(/['’]/g,'').replace(/\+/g,'plus').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+function autoName(){
+  var b=bookOf(up.dir), book=(up.dir||'Other').replace(/['’]/g,'').replace(/\s+/g,'-'), lv=up.level.trim();
+  if(lv){var n=(b.kids||b.num)?(lv.match(/\d+(?:-\d+)?/)||[''])[0]:lv.replace(/\+/g,'plus').replace(/\s+/g,'');if(n)book+='-'+n;}
+  var u=up.unit.trim().replace(/^unit\s*/i,'').replace(/\s+/g,'');
+  var parts=[book];if(u)parts.push((/^\d/.test(u)?'Unit':'')+u);var t=slugify(up.topic);if(t)parts.push(t+(up.hw?'-homework':''));else if(up.hw)parts.push('homework');
+  return parts.join('_')+'.html';
+}
+function upHtml(){
+  if(!up.edited)up.name=autoName();
+  var exists=shas[up.name];
+  return '<div class="card"><h2>Загрузить новый файл</h2><p class="muted">Выберите HTML-файл и заполните поля: из них сложится имя файла, по которому сайт сам поставит урок на нужную полку, уровень и юнит.</p>'+
+    '<div class="row"><button id="upf">'+(up.file?'📄 '+esc(up.file.name):'Выбрать файл…')+'</button></div>'+
+    '<div class="row"><div><label class="f">Учебник</label><select id="upd"><option value="">— выберите —</option>'+books().filter(function(b){return b!=='Other';}).map(function(b){return '<option'+(b===up.dir?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></div>'+
+    '<div><label class="f">Уровень или номер учебника</label><input type="text" id="upl" value="'+esc(up.level)+'" placeholder="A2+ · B1 · Spotlight 4 → 4"></div>'+
+    '<div><label class="f">Юнит (если есть)</label><input type="text" id="upu" value="'+esc(up.unit)+'" placeholder="2A · 3 · Module1"></div></div>'+
+    '<div class="row"><div style="flex:3 1 260px"><label class="f">Тема латиницей</label><input type="text" id="upt" value="'+esc(up.topic)+'" placeholder="to the rescue past simple"></div><div style="flex:0 0 auto"><label class="f">&nbsp;</label><label style="display:flex;gap:6px;align-items:center;padding:9px 0"><input type="checkbox" id="uph"'+(up.hw?' checked':'')+'> это домашка</label></div></div>'+
+    '<label class="f">Имя файла на сайте (можно поправить)</label><input type="text" id="upn" class="fname" value="'+esc(up.name)+'">'+
+    (exists?'<p class="st err">Файл с таким именем уже есть. Загрузка заменит его новой версией.</p>':'')+
+    '<div class="row" style="margin-top:12px"><button class="main" id="upgo"'+(up.file&&up.dir?'':' disabled')+'>Загрузить на сайт</button></div><p class="st" id="upst"></p></div>';
+}
+function bindUp(){
+  var g=function(id){return document.getElementById(id);};
+  g('upf').onclick=async function(){var fl=await pick();if(fl){up.file=fl;if(!up.topic)up.topic=fl.name.replace(/\.html?$/i,'').replace(/[_-]+/g,' ');render();}};
+  [['upd','dir'],['upl','level'],['upu','unit'],['upt','topic']].forEach(function(x){g(x[0]).addEventListener('change',function(){up[x[1]]=this.value;up.edited=false;render();});});
+  g('uph').onchange=function(){up.hw=this.checked;up.edited=false;render();};
+  g('upn').oninput=function(){up.name=this.value.trim();up.edited=true;};
+  g('upgo').onclick=async function(){
+    var name=up.name.replace(/^\/+/,'');if(!/\.html?$/i.test(name)){alert('Имя файла должно заканчиваться на .html');return;}
+    if(shas[name]&&!confirm('Файл «'+name+'» уже есть. Заменить его?'))return;
+    var b=this;b.disabled=true;g('upst').textContent='Загружаю…';
+    try{
+      shas[name]=await putFile(name,await readFile(up.file),'Редактор сайта: '+(shas[name]?'новая версия ':'новый файл ')+name,shas[name]);
+      if(files.indexOf(name)<0)files.push(name);L.set({},[]);L.parse(files);auto={};L.data().forEach(function(d){auto[d.path]=d;});
+      var link=location.origin+'/'+enc(name);
+      g('upst').className='st ok';g('upst').innerHTML='Загружено ✓ Появится на сайте через 1–2 минуты: <a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(link)+'</a>';
+      up={file:null,dir:up.dir,level:up.level,unit:'',topic:'',hw:false,name:'',edited:false};
+      setTimeout(function(){if(view==='up'){var keepMsg=g('upst').innerHTML;render();g('upst').className='st ok';g('upst').innerHTML=keepMsg;}},50);
+    }catch(e){b.disabled=false;g('upst').className='st err';g('upst').textContent='Не получилось: '+e.message;}
+  };
+}
+document.getElementById('save').onclick=async function(){
+  if(busy||!dirty)return;busy=true;this.disabled=true;status('Сохраняю…');
+  try{
+    Object.keys(cat.fix).forEach(function(k){if(!Object.keys(cat.fix[k]).length)delete cat.fix[k];});
+    var text=JSON.stringify({fix:cat.fix,hide:cat.hide},null,1)+'\n';
+    catSha=await putFile('catalog.json',new TextEncoder().encode(text),'Редактор сайта: каталог',catSha);
+    setDirty(false);status('Сохранено ✓ Сайт обновится через 1–2 минуты.','ok');
+  }catch(e){status(/^409/.test(e.message)?'Каталог изменился с другого устройства. Обновите страницу и внесите правку заново.':'Не сохранилось: '+e.message,'err');}
+  finally{busy=false;this.disabled=false;}
+};
+init();
+})();
+</script>
+</body>
+</html>
