@@ -828,7 +828,10 @@ textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px
 .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .pjob{margin:0;background:#fff;border:1px solid var(--line,#e6ddd0);border-radius:12px;padding:8px}
 .pjob img,.pjob .noimg{width:100%;aspect-ratio:10/7;object-fit:cover;border-radius:10px;display:block;background:#f1ebe2}
-.pjob .noimg{display:grid;place-items:center;font-size:32px}
+.pjob .noimg{display:grid;place-items:center;font-size:44px;line-height:1;aspect-ratio:auto;height:84px}
+.jobbank{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:620px){.pgrid.jobbank{grid-template-columns:repeat(2,minmax(0,1fr))}.pjob .noimg{height:64px;font-size:36px}}
+.blog .blogimg.emo{display:grid;place-items:center;height:110px;font-size:48px;letter-spacing:8px;background:#f1ebe2}
 .pjob .opts{margin-top:8px}
 @media (max-width:560px){.pgrid{grid-template-columns:1fr}}
 .tplayer{border-left:4px solid #3E6A8A}
@@ -1511,14 +1514,9 @@ function checkYourself(list) {
   REPORT.push(() => ["== CHECK YOURSELF ==", ...CANDO.map(([en, st]) => (st.val() ? "★".repeat(st.val()) + "☆".repeat(3 - st.val()) : "—") + "  " + en)]);
 }
 
-/* Free photos — Unsplash License */
-const U = id => "https://images.unsplash.com/photo-" + id + "?auto=format&fit=crop&w=600&h=420&q=70";
-const PIC = {
-  coffee: "https://images.unsplash.com/photo-1500912708295-4cf8b060f381?auto=format&fit=crop&w=900&h=420&q=70",
-  job0: U("1510442650500-93217e634e4c"), job1: U("1642505172378-a6f5e5b15580"), job2: U("1547153760-18fc86324498"), job3: U("1662837625421-5fd8ed6131a0"),
-  job4: U("1589793463357-5fb813435467"), job5: U("1760024354746-85e3b40f2e83"), job6: U("1766415007432-80738e830722"), job7: U("1770836037793-95bdbf190f71"),
-  credit: "Photos: Unsplash (T. Milkovic, everdrop, M. Petroski, O. Guner, R. Gieling, A. Pahlavan, B. Dittrich, A. Mass)."
-};
+/* Pictures — emoji (no external photos, work offline) */
+const JOB_EMOJI = ["✍️", "🧹", "💃", "🦷", "🧑‍🏭", "🧑‍💼", "🗺️", "🐾"];
+const PIC = {};
 
 /* 🎙 record → listen → download (link-style controls: autosave never replays them) */
 /* recorder: save as WAV (plays everywhere: iPhone, Mac, Windows), live sound meter, warning if the mic gives silence */
@@ -1701,13 +1699,12 @@ const CAN_DO = [
 
 function jobBank() {
   return h("div", { class: "card" }, h("b", null, "💼 Jobs from the lesson"), h("p", { class: "small muted", style: "margin:2px 0 10px" }, "Tap 🔊 to hear the word. · Нажмите 🔊, чтобы услышать слово."),
-    h("div", { class: "pgrid jobbank" }, ...JOBS.map(([job, ru], i) => h("figure", { class: "pjob" }, PIC["job" + i] ? h("img", { src: PIC["job" + i], alt: job, loading: "lazy" }) : h("div", { class: "noimg" }, "📷"),
-      h("figcaption", null, h("b", null, job), " ", listenBtn(job.replace(/ \(.*\)/, "")), " ", ruHide(ru))))),
-    h("p", { class: "small muted" }, PIC.credit));
+    h("div", { class: "pgrid jobbank" }, ...JOBS.map(([job, ru], i) => h("figure", { class: "pjob" }, h("div", { class: "noimg", role: "img", "aria-label": job }, JOB_EMOJI[i] || "💼"),
+      h("figcaption", null, h("b", null, job), " ", listenBtn(job.replace(/ \(.*\)/, "")), " ", ruHide(ru))))));
 }
 function wordBox(words) { return h("div", { class: "card wbox" }, h("b", null, "Word box: "), ...words.map(w => h("span", { class: "chipw" }, w))); }
 function foodCard() {
-  return h("div", { class: "card blog" }, h("img", { class: "blogimg", src: "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=900&h=420&q=70", alt: "Chocolate" }), h("p", { class: "small muted", style: "margin:-4px 0 8px" }, "Photo: Unsplash (J. Loaiza)"),
+  return h("div", { class: "card blog" }, h("div", { class: "blogimg emo", role: "img", "aria-label": "Food scientist and chocolate" }, "👩‍🔬 🍫 🧪"),
     h("div", { class: "blog-t" }, "My job: food scientist"), h("div", { class: "vocgaps" }, typedGaps("k2", EX2B, "Key 02 · WB 2B · Food scientist")));
 }
 
