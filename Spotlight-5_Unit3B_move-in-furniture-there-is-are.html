@@ -795,6 +795,11 @@ span.gw{display:inline;padding:0 1px}
 .verbs.nog .vchip.on{background:#F9D6D2;border-color:#C9564A}
 .verbs.chk{flex-direction:column;align-items:stretch}.verbs.chk .vchip{text-align:left}
 .story .sl2 .who{display:block;flex:0 0 56px;padding:2px;background:none;text-align:center}.story .sl2 .who .p3d{width:38px;height:38px}.story .sl2 .who b{display:block;font:800 12px/14px var(--f-sans)}.story .sl2 .tx{text-align:left;min-width:0}
+.bank .bankh{font:900 17px/22px var(--f-sans);color:#C9302C;margin:10px 0 4px;text-transform:capitalize}
+.bankg{display:grid;grid-template-columns:1fr;gap:4px}
+.bankr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#FFF8EE;border-radius:10px;padding:4px 8px}
+.bankr .p3d{width:34px;height:34px}.bankr .bw{font:800 17px/22px var(--f-sans);flex:1;min-width:90px}.bankr .say{transform:scale(.8)}
+.bankr .bru{width:100%;font:600 14px/18px var(--f-sans);color:#7A6A5A;padding-left:42px}
 
 </style>
 </head>
@@ -1051,6 +1056,17 @@ const poster = (B,title,sub,id,items,gid) => { const p=el("div","poster"); p.sty
 
 /* =================== 0 — Move in! =================== */
 (function(){ const B=PANEL.w.body; goal(B,"w");
+  /* 📚 Word bank + 📐 Grammar bank (reference, no coins) */
+  (function(){ const wb=el("div","card bank"); wb.appendChild(el("p","task","📚 Word bank · Слова урока")); wb.appendChild(el("p","ru","Нажми 🔊 — послушай, 🇷🇺 — перевод."));
+    ROOMS4.forEach((r,ri)=>{ wb.appendChild(el("p","bankh gl",r.w)); const g=el("div","bankg"); FURN.filter(f=>f.r===ri).forEach(f=>{ const row=el("div","bankr"); row.innerHTML=P3(f.k)+`<span class="bw gl">${f.w}</span>`; const ru=el("span","bru",f.ru); ru.hidden=true; const tb=el("button","say tr","🇷🇺"); tb.type="button"; tb.onclick=()=>{ ru.hidden=!ru.hidden; }; row.append(sayBtn(f.w),tb,ru); g.appendChild(row); }); wb.appendChild(g); });
+    B.appendChild(wb);
+    const gb=el("div","card bank"); gb.appendChild(el("p","task","📐 Grammar bank · Грамматика урока"));
+    const t1=el("div","gtable gl"); t1.innerHTML=`<div class="gh">ONE · один</div><div class="gh">TWO + · много</div><div>There <b>is</b> a sofa.</div><div>There <b>are</b> two chairs.</div><div>There <b>isn't</b> a TV.</div><div>There <b>aren't any</b> books.</div><div><b>Is there</b> a bed? — Yes, there <b>is</b>. / No, there <b>isn't</b>.</div><div><b>Are there any</b> lamps? — Yes, there <b>are</b>. / No, there <b>aren't</b>.</div>`; gb.appendChild(t1);
+    gb.appendChild(el("p","ru","There is / are = «есть, находится». Место — в конце: There is a cooker <b>in the kitchen</b>. В отрицании и вопросе с «много» — any."));
+    const t2=el("div","gtable gl"); t2.innerHTML=`<div class="gh">I · you · he · she · it</div><div class="gh">we · you · they</div><div><b>my</b> · <b>your</b> · <b>his</b> · <b>her</b> · <b>its</b></div><div><b>our</b> · <b>your</b> · <b>their</b></div><div>Tom → <b>his</b> bed</div><div>Mia → <b>her</b> desk</div>`; gb.appendChild(t2);
+    gb.appendChild(el("p","ru","Чей? Смотрим на владельца: мальчик — his, девочка — her, предмет/животное — its (без апострофа)."));
+    const gp=el("div","page-tools"); [["🔊 there is / are","There is a sofa. There are two chairs. There isn't a TV. There aren't any books. Is there a bed? Yes, there is. Are there any lamps? No, there aren't."],["🔊 my – their","my, your, his, her, its, our, your, their."]].forEach(([l,x])=>{ const b=el("button","btn small",l); b.type="button"; b.dataset.ue="skip"; b.onclick=()=>speak(x); gp.appendChild(b); }); gb.appendChild(gp);
+    B.appendChild(gb); })();
   const card=el("div","card"); B.appendChild(card);
   card.innerHTML=`<p class="q">👋 “Hi! What's your name?”</p><p class="ru">Напиши своё имя.</p>`; card.querySelector(".q").appendChild(sayBtn("Hi! What's your name?"));
   const nb=el("div","namebox"), inp=el("input"), btn=el("button","btn","✓ That's me!"); inp.type="text"; inp.maxLength=20; inp.autocomplete="off"; inp.placeholder="Your name"; btn.type="button";
