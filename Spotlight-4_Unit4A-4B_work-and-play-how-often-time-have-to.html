@@ -1644,7 +1644,7 @@ function useAutosave(){
   const KEY="ue-save:"+LESSON_FILE;
   const SKIP=b=> b.dataset.ue==="skip" || b.closest("#teacher,.restore,.recw,.bar,.voicebar,nav.map") || b.classList.contains("say") || b.classList.contains("trbtn") || b.classList.contains("gw") || b.classList.contains("mtab")
     || (b.closest(".bb") && !b.classList.contains("ghost")) || /^(▶ Listen|🔊|▶ Play|▶ Sing|⏹|🐢)/.test(b.textContent.trim()) || b.id==="logo";
-  let UID=0; const tagAll=()=>{ document.querySelectorAll("button,input,textarea").forEach(x=>{ if(!x.dataset.uid) x.dataset.uid=String(++UID); }); };
+  let UID=0; const tagAll=()=>{ document.querySelectorAll("button,input,textarea").forEach(x=>{ if(!x.dataset.uid&&!x.closest(".uet")) x.dataset.uid=String(++UID); }); };
   const find=u=>document.querySelector(`[data-uid="${u}"]`);
   const okInput=t=>t.matches("input[type=text],input:not([type]),textarea")&&!t.closest("#teacher");
   tagAll();
