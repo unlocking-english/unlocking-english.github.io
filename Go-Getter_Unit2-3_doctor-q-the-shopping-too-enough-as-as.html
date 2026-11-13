@@ -1698,5 +1698,55 @@ show(MISSIONS[0].k,false); updateMProg();
 if(typeof TAIL==="function") TAIL();
 useReview(); useAutosave(); useAutosend();
 </script>
+<script>
+/* UE-REPORT-BTN · «📸 Report» button in the top bar → report card for a screenshot (kids kit, 2026-11-13) */
+(function(){ if(window.__ueRepBtn) return; window.__ueRepBtn=1;
+  if(typeof ueReportRows!=="function"||typeof done==="undefined") return;
+  const css=document.createElement("style"); css.textContent=`
+.repbtn{border:none;border-radius:999px;background:#FFD24D;color:#3B2A1A;font:800 14px/18px var(--f-sans,sans-serif);padding:6px 10px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+@media (max-width:420px){.repbtn .rl{display:none}}
+.urep-wrap{position:fixed;inset:0;z-index:200;background:rgba(30,20,40,.6);overflow-y:auto;padding:14px 10px 30px}
+.urep{max-width:560px;margin:0 auto;background:#fff;border-radius:18px;padding:14px 14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.3);color:#2B2440;font:600 15px/21px var(--f-sans,sans-serif)}
+.urep-help{max-width:560px;margin:0 auto 10px;background:#2B2440;color:#fff;border-radius:14px;padding:10px 12px;font:700 14px/19px var(--f-sans,sans-serif)}
+.urep-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px dashed #EADFCB;padding-bottom:8px}
+.urep-t{font:900 17px/22px var(--f-sans,sans-serif)}.urep-who{text-align:right}.urep-who b{display:block;font-size:17px}.urep-who span{font-size:12px;color:#7A6A5A}
+.urep-score{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.urep-big{flex:1;min-width:120px;background:#FFF5E3;border-radius:12px;padding:8px;text-align:center}
+.urep-big b{display:block;font:900 30px/34px var(--f-sans,sans-serif);color:#C9302C}.urep-big span{font-size:12px;color:#7A6A5A}
+.urep-k{display:grid;grid-template-columns:minmax(0,1fr) 70px 66px;gap:6px;align-items:center;font-size:13px;margin:3px 0}
+.urep-k i{display:block;height:8px;border-radius:4px;background:#EADFCB;overflow:hidden}.urep-k i s{display:block;height:100%;background:#3FA96B;text-decoration:none}
+.urep-k .v{text-align:right;font-weight:800}.urep .sum-h{font:900 15px/20px var(--f-sans,sans-serif);margin:12px 0 4px}
+.urep ol{margin:0;padding-left:20px;font-size:13px;line-height:18px}.urep .w{color:#C9302C}.urep .c{color:#2E8B57}
+.urep-act{max-width:560px;margin:10px auto 0;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.urep-act button{border:none;border-radius:999px;padding:9px 16px;font:800 15px/20px var(--f-sans,sans-serif);cursor:pointer;background:#fff}.urep-act .x{background:#FFD24D}`;
+  document.head.appendChild(css);
+  const esc=s=>String(s==null?"":s).replace(/[<>&]/g,"");
+  function open(){ const nm=(typeof NAME!=="undefined"&&NAME)||"";
+    if(!nm){ try{ toast("Write your name first · Сначала впиши имя 🙂"); }catch(e){} try{ show(MISSIONS[0].k); const i=document.querySelector(".namebox input"); i&&i.focus(); }catch(e){} return; }
+    const rows=ueReportRows(); let ok=0,n=0; rows.forEach(r=>{ if(r.s){ ok+=r.s.ok; n+=r.s.n; } });
+    const pct=ALL.length?Math.round(done.size/ALL.length*100):0, acc=n?Math.round(ok/n*100):null;
+    const mood=pct===100&&(acc===null||acc>=85)?"🌟 Excellent work!":pct===100?"👍 All done!":"⏳ Not finished yet";
+    const work=rows.filter(r=>r.s&&r.s.ok<r.s.n).map(r=>r.m.title);
+    const ttl=esc(document.title.replace(/\s*·\s*Unlocking English with Val.*$/,""));
+    const ov=document.createElement("div"); ov.className="urep-wrap"; ov.setAttribute("role","dialog");
+    ov.innerHTML=`<div class="urep-help">📸 Take a screenshot of your report and send it to Val. · Сделай скриншот отчёта и отправь Вэл.</div>
+    <div class="urep"><div class="urep-top"><div class="urep-t">${ttl}</div><div class="urep-who"><b>${esc(nm)}</b><span>${new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div></div>
+    <div class="urep-score"><div class="urep-big"><b>${pct}%</b><span>done · выполнено (🪙 ${done.size} / ${ALL.length})</span></div>${acc!==null?`<div class="urep-big"><b>${acc}%</b><span>right first time · с 1-й попытки</span></div>`:""}<div class="urep-big"><b style="font-size:18px;line-height:34px">${mood}</b><span>&nbsp;</span></div></div>
+    ${rows.map(r=>{ const ids=TASKS[r.m.k]||[], d=ids.filter(id=>done.has(id)).length; return `<div class="urep-k"><span>Key ${String(r.i+1).padStart(2,"0")} · ${esc(r.m.title)}</span><i><s style="width:${ids.length?d/ids.length*100:0}%"></s></i><span class="v">${d}/${ids.length}${r.s?` · ${r.s.ok}/${r.s.n}✓`:""}</span></div>`; }).join("")}
+    ${typeof mistakesHTML==="function"?mistakesHTML():""}
+    <p class="sum-h">🎯 Work on this · Над чем поработать</p><p>${work.length?work.map(esc).join(", "):"Nothing — great job! 🎉 · Всё отлично!"}</p>
+    ${typeof reviewBlock==="function"?reviewBlock():""}</div>
+    <div class="urep-act"><button type="button" class="x">✕ Close · Закрыть</button><button type="button" class="cp">📋 Copy text</button></div>`;
+    const close=()=>{ ov.remove(); document.removeEventListener("keydown",ek); }, ek=e=>{ if(e.key==="Escape") close(); };
+    ov.querySelector(".x").onclick=close; ov.addEventListener("click",e=>{ if(e.target===ov) close(); }); document.addEventListener("keydown",ek);
+    ov.querySelector(".cp").onclick=e=>{ const b=e.currentTarget, txt=(typeof ueReportText==="function")?ueReportText():ov.querySelector(".urep").innerText;
+      const okf=()=>b.textContent="✓ Скопировано"; const fb=()=>{ const t=document.createElement("textarea"); t.value=txt; document.body.appendChild(t); t.select(); try{ document.execCommand("copy"); okf(); }catch(x){ b.textContent="Сделай скриншот 📸"; } t.remove(); };
+      try{ if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(txt).then(okf,fb); else fb(); }catch(x){ fb(); } };
+    document.body.appendChild(ov); ov.scrollTop=0; }
+  const bar=document.querySelector(".bar-coins"); if(!bar) return;
+  const b=document.createElement("button"); b.type="button"; b.className="repbtn"; b.dataset.ue="skip"; b.setAttribute("aria-label","My report"); b.innerHTML='📸<span class="rl"> Report</span>'; b.onclick=open; bar.insertBefore(b,bar.firstChild);
+  window.ueShowReport=open;
+})();
+
+</script>
 </body>
 </html>
