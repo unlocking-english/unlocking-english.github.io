@@ -1811,5 +1811,125 @@ useReview(); useAutosave(); useAutosend();
 })();
 
 </script>
+<script>
+/* =========================================================
+   🎲 PRACTICE GENERATOR · kids kit · since 2026-11-13 (NEW lessons only)
+   Endless rounds of vocabulary + grammar practice, spelling first.
+   Usage in a lesson BUILD():
+     practiceGen(PANEL.x.body, { id:"gen",                     // coin after the first finished round (reg it!)
+       words:[{w:"cousin", ru:"двоюродный брат", pic:P3("cousinb")}, …],   // pic optional (HTML)
+       sentences:[{q:"She … got long hair.", options:["'s","have"], answer:0},   // grammar gap (choose)
+                  {order:"This is my uncle."}],                                   // word order
+       size:8 });
+   Item types: listen & type · missing letters · unscramble · Russian → English · picture → word ·
+   correct spelling · grammar gap · word order. Wrong answers come back once at the end of the round.
+   Nothing plays by itself — sound only on 🔊.
+   ========================================================= */
+(function(){ if(document.getElementById("pg-css")) return; const s=document.createElement("style"); s.id="pg-css"; s.textContent=`
+.pg{background:#fff;border-radius:var(--r-md,16px);box-shadow:var(--lift,0 4px 0 rgba(0,0,0,.08));padding:12px;margin:10px 0}
+.pg-modes{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.pg-modes .vchip{font-size:14px}
+.pg-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font:800 14px/18px var(--f-sans,sans-serif);color:#5D4A9C}
+.pg-dots{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.pg-dots i{width:14px;height:14px;border-radius:50%;background:#E6E2F3}.pg-dots i.ok{background:#3FA96B}.pg-dots i.no{background:#E5534B}.pg-dots i.now{outline:3px solid #F2C14E}
+.pg-box{min-height:150px;text-align:center;padding:6px 0}
+.pg-lab{font:800 13px/18px var(--f-sans,sans-serif);color:#8A7FB8;text-transform:uppercase;letter-spacing:.5px}
+.pg-prompt{font:900 30px/38px var(--f-sans,sans-serif);margin:6px 0;letter-spacing:2px;overflow-wrap:anywhere}.pg-prompt.ru{font-size:22px;letter-spacing:0;color:#2B2440}
+.pg-pic .p3d,.pg-pic img{width:84px;height:84px}
+.pg-big{font-size:34px;min-width:72px;min-height:60px}
+.pg-in{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0}.pg-in input{font:800 22px/28px var(--f-sans,sans-serif);padding:8px 10px;border-radius:12px;border:3px solid #C9C2E6;width:min(240px,100%);text-align:center}
+.pg-tiles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}.pg-tiles button{min-width:44px;min-height:44px;border:none;border-radius:10px;background:#EDE9FB;font:900 20px/24px var(--f-sans,sans-serif);cursor:pointer}.pg-tiles button.used{visibility:hidden}
+.pg-ans{min-height:48px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;border-bottom:3px dashed #C9C2E6;margin:6px auto;max-width:420px;font:900 22px/28px var(--f-sans,sans-serif)}
+.pg-ans span{background:#FFF1C9;border-radius:8px;padding:2px 8px}
+.pg-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:8px 0}.pg-opts button{border:none;border-radius:12px;background:#F4F1FF;padding:12px 8px;font:800 18px/22px var(--f-sans,sans-serif);cursor:pointer;box-shadow:0 3px 0 #D9D2F3}
+.pg-opts button.no{background:#F9D6D2}.pg-opts button.ok{background:#CDEFD8}
+.pg-fb{min-height:24px;font:800 16px/22px var(--f-sans,sans-serif)}.pg-fb.ok{color:#2E8B57}.pg-fb.no{color:#C9302C}
+.pg-end{font:800 18px/26px var(--f-sans,sans-serif)}.pg-end b{font-size:30px;color:#C9302C}
+.pg-act{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}`; document.head.appendChild(s); })();
+
+function practiceGen(parent,o){
+  o=Object.assign({size:8,sentences:[],words:[]},o||{});
+  const W=o.words.filter(x=>x&&x.w), SENT=o.sentences||[];
+  let seed=(Date.now()%2147483647)||7; const rnd=()=>{ seed=(seed*48271)%2147483647; return seed/2147483647; };
+  const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  const norm=v=>String(v||"").trim().toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g," ").replace(/[.!?]$/,"");
+  const isWord=w=>/^[a-z' -]+$/i.test(w);
+  const TYPES={ listen:"🎧 Listen and write", gaps:"🔤 Missing letters", scramble:"🧩 Unscramble", ru:"🇷🇺 → 🇬🇧 Write in English", pic:"👀 Look and choose", spell:"✅ Correct spelling", gram:"✍️ Grammar", order:"🧩 Word order" };
+  const MODES=[["mix","🎲 Mix",["listen","gaps","scramble","ru","pic","spell","gram","order"]],["spellm","🔤 Spelling",["listen","gaps","scramble","spell"]],["wordsm","👀 Words",["ru","pic","spell"]]].concat(SENT.length?[["gramm","✍️ Grammar",["gram","order"]]]:[]);
+  let mode="mix", round=0, best=0;
+  const card=el("div","pg"); parent.appendChild(card);
+  card.appendChild(el("p","task","🎲 Practice generator · Тренажёр"));
+  card.appendChild(el("p","ru","Каждый раунд — новые задания на слова урока. Ошибся — слово вернётся в конце раунда. Нажимай «🎲 New round» сколько хочешь!"));
+  const mg=el("div","pg-modes"); MODES.forEach(([k,lab])=>{ const b=el("button","vchip"+(k===mode?" on":""),lab); b.type="button"; b.dataset.ue="skip"; b.onclick=()=>{ mode=k; mg.querySelectorAll(".vchip").forEach(x=>x.classList.toggle("on",x===b)); start(); }; mg.appendChild(b); }); card.appendChild(mg);
+  const top=el("div","pg-top"), dots=el("div","pg-dots"), box=el("div","pg-box"), fb=el("div","pg-fb"); card.append(top,dots,box,fb);
+  let Q=[], qi=0, score=0, res=[], again=[];
+  function misspell(w){ const out=new Set(), L=w.split(""), V="aeiou";
+    for(let t=0;t<40&&out.size<2;t++){ const a=L.slice(), i=1+Math.floor(rnd()*Math.max(1,a.length-2)), k=Math.floor(rnd()*4);
+      if(k===0&&i<a.length-1&&a[i]!==a[i+1]&&a[i]!==" "&&a[i+1]!==" "){ [a[i],a[i+1]]=[a[i+1],a[i]]; }
+      else if(k===1&&a.length>3&&a[i]!==" "){ a.splice(i,1); }
+      else if(k===2&&/[a-z]/.test(a[i])){ a.splice(i,0,a[i]); }
+      else if(V.includes(a[i])){ a[i]=V[(V.indexOf(a[i])+1+Math.floor(rnd()*4))%5]; }
+      const s=a.join(""); if(s!==w) out.add(s); }
+    return [...out]; }
+  function build(){ const types=MODES.find(m=>m[0]===mode)[2].filter(t=>(t!=="gram"&&t!=="order")||SENT.length).filter(t=>t!=="pic"||W.some(x=>x.pic));
+    const items=[]; let ws=shuffle(W), ss=shuffle(SENT), tt=shuffle(types);
+    for(let i=0;i<o.size;i++){ let t=tt[i%tt.length];
+      if(t==="gram"||t==="order"){ const cand=ss.filter(s=>t==="gram"?s.q:s.order); if(!cand.length){ t="listen"; } else { items.push({t,s:cand[i%cand.length]}); continue; } }
+      if(!ws.length) ws=shuffle(W); let w=ws.pop();
+      if(t==="scramble"&&(!isWord(w.w)||/\s/.test(w.w)||w.w.length<3||w.w.length>10)) t="gaps";
+      if(t==="pic"&&!w.pic){ const pw=W.filter(x=>x.pic); w=pw[Math.floor(rnd()*pw.length)]; }
+      items.push({t,w}); }
+    return items; }
+  function start(){ round++; Q=build(); qi=0; score=0; res=Q.map(()=>""); again=[]; fb.textContent=""; show(); }
+  function paintTop(){ top.innerHTML=`<span>Round ${round}${best?` · best ${best}/${o.size}`:""}</span><span>${Math.min(qi+1,Q.length)} / ${Q.length}</span>`; dots.innerHTML=Q.map((_,i)=>`<i class="${res[i]}${i===qi?" now":""}"></i>`).join(""); }
+  function next(okFirst){ if(qi<o.size) res[qi]=okFirst?"ok":"no"; if(okFirst&&qi<o.size) score++; if(!okFirst&&qi<o.size) again.push(Q[qi]); qi++;
+    if(qi===o.size&&again.length){ Q=Q.concat(again.map(x=>Object.assign({},x,{again:1}))); res=res.concat(again.map(()=>"")); }
+    setTimeout(()=>{ fb.textContent=""; show(); },650); }
+  function finish(){ best=Math.max(best,score); paintTop(); box.innerHTML=`<div class="pg-end">Round ${round} finished!<br><b>${score} / ${o.size}</b><br>${score===o.size?"🌟 Perfect!":score>=o.size-2?"👍 Great!":"💪 Try another round!"}</div>`;
+    const act=el("div","pg-act"), nb=el("button","btn","🎲 New round"); nb.type="button"; nb.dataset.ue="skip"; nb.onclick=start; act.appendChild(nb); box.appendChild(act);
+    chime("badge"); if(o.id&&!done.has(o.id)) award(o.id,nb); }
+  function input(ans,onOk,label,w){ const row=el("div","pg-in"), inp=el("input"), ck=el("button","btn","Check ✓"); inp.type="text"; inp.autocomplete="off"; inp.spellcheck=false; inp.setAttribute("autocapitalize","off"); inp.placeholder="write here"; ck.type="button"; ck.dataset.ue="skip"; row.append(inp,ck); box.appendChild(row);
+    let tries=0; const go=()=>{ if(inp.disabled) return; if(norm(inp.value)===norm(ans)){ inp.disabled=true; ck.disabled=true; good(ans,tries===0); } else { tries++; ueWrong("pg-"+label,inp.value,ans,label); shake(inp); chime("bad");
+      if(tries>=2){ inp.disabled=true; ck.disabled=true; fb.className="pg-fb no"; fb.textContent="✗ "+ans+" — запомни!"; speakW(ans); setTimeout(()=>next(false),900); } else { fb.className="pg-fb no"; fb.textContent="✗ Try again!"+(w&&w.ru&&label!=="ru"?" 💡 "+w.ru:" 💡 "+ans[0]+"…"); } } };
+    ck.onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); }; setTimeout(()=>{ try{ inp.focus({preventScroll:true}); }catch(e){} },50); }
+  function speakW(t){ try{ speak(t); }catch(e){} }
+  function good(ans,first){ chime("ok"); fb.className="pg-fb ok"; fb.textContent="✓ "+ans; speakW(ans); next(first); }
+  function opts(list,ans,label){ const g=el("div","pg-opts"); let tries=0; list.forEach(x=>{ const b=el("button","",x); b.type="button"; b.dataset.ue="skip"; b.onclick=()=>{ if(g.dataset.done) return; if(x===ans){ g.dataset.done=1; b.classList.add("ok"); good(ans,tries===0); } else { tries++; b.classList.add("no"); b.disabled=true; shake(b); chime("bad"); ueWrong("pg-"+label,x,ans,label); } }; g.appendChild(b); }); box.appendChild(g); }
+  function tiles(parts,ans,label,joiner){ const a=el("div","pg-ans"), t=el("div","pg-tiles"); box.append(a,t); let k=0, err=0; let order=shuffle(parts.map((_,i)=>i)); if(parts.length>1&&order.every((v,i)=>v===i)) order=order.reverse();
+    order.forEach(i=>{ const b=el("button","",parts[i]); b.type="button"; b.dataset.ue="skip"; b.onclick=()=>{ if(parts[i]===parts[k]){ b.classList.add("used"); a.appendChild(el("span","",parts[i])); k++; if(k===parts.length) good(ans,err===0); } else { err++; shake(b); chime("bad"); if(err===1) ueWrong("pg-"+label,parts[i],ans,label); } }; t.appendChild(b); }); }
+  function show(){ if(qi>=Q.length) return finish(); paintTop(); const it=Q[qi]; box.innerHTML=`<p class="pg-lab">${TYPES[it.t]}${it.again?" · again":""}</p>`; const w=it.w;
+    const say=t=>{ const b=el("button","btn pg-big","🔊"); b.type="button"; b.dataset.ue="skip"; b.setAttribute("aria-label","Listen"); b.onclick=()=>speakW(t); return b; };
+    if(it.t==="listen"){ box.appendChild(say(w.w)); box.appendChild(el("p","ru","Нажми 🔊, послушай и напиши слово.")); input(w.w,null,"listen",w); }
+    else if(it.t==="gaps"){ const L=w.w.split(""), idx=L.map((c,i)=>i).filter(i=>i>0&&/[a-z]/i.test(L[i])); const n=Math.max(1,Math.round(idx.length*0.45)); const hide=new Set(shuffle(idx).slice(0,n));
+      box.appendChild(el("div","pg-prompt",L.map((c,i)=>hide.has(i)?"_":c).join(""))); if(w.pic) box.appendChild(el("div","pg-pic",w.pic)); box.appendChild(el("p","ru",(w.ru?w.ru+" · ":"")+"Напиши слово целиком.")); input(w.w,null,"gaps",w); }
+    else if(it.t==="scramble"){ if(w.pic) box.appendChild(el("div","pg-pic",w.pic)); box.appendChild(el("p","ru",(w.ru?w.ru+" · ":"")+"Нажимай буквы по порядку.")); tiles(w.w.split(""),w.w,"scramble"); }
+    else if(it.t==="ru"){ if(w.pic) box.appendChild(el("div","pg-pic",w.pic)); box.appendChild(el("div","pg-prompt ru",w.ru||"…")); input(w.w,null,"ru",w); }
+    else if(it.t==="pic"){ box.appendChild(el("div","pg-pic",w.pic)); const others=shuffle(W.filter(x=>x.w!==w.w)).slice(0,2).map(x=>x.w); opts(shuffle([w.w].concat(others)),w.w,"pic"); }
+    else if(it.t==="spell"){ box.appendChild(say(w.w)); if(w.ru) box.appendChild(el("p","pg-prompt ru",w.ru)); opts(shuffle([w.w].concat(misspell(w.w))),w.w,"spell"); }
+    else if(it.t==="gram"){ const s=it.s; box.appendChild(el("div","pg-prompt ru gl",s.q)); const full=s.q.replace("…",s.options[s.answer]); opts(shuffle(s.options.slice()),s.options[s.answer],"gram"); box.dataset.full=full; }
+    else if(it.t==="order"){ const s=it.s; box.appendChild(el("p","ru","Собери предложение.")); tiles(s.order.split(" "),s.order,"order"); }
+  }
+  start();
+  return card; }
+
+/* UE-PRACTICE-GEN · How often? generator (added 2026-11-13 at Val's request) */
+(function(){ if(typeof practiceGen!=="function"||!PANEL||!PANEL.o) return;
+  const B=PANEL.o.body, wrap=el("div","uet pgwrap"); B.appendChild(wrap);
+  wrap.appendChild(el("div","code",`<span class="ar">🎲</span><div><b>Remember it! · Запоминаем</b><p>— <b>How often</b> do they play volleyball?<br>— <b>Once</b> a week. / <b>Twice</b> a week. / <b>Three times</b> a week. / <b>Every day</b>.<br>— How often <b>does</b> she go swimming? — Twice a week.</p></div>`));
+  const P=k=>(typeof IMG!=="undefined"&&IMG[k])?P3(k):"";
+  practiceGen(wrap,{ size:8,
+    words:[{w:"once a week",ru:"один раз в неделю"},{w:"twice a week",ru:"два раза в неделю"},{w:"three times a week",ru:"три раза в неделю"},{w:"every day",ru:"каждый день"},{w:"how often",ru:"как часто"},{w:"never",ru:"никогда"},
+      {w:"volleyball",ru:"волейбол",pic:P("volley")},{w:"tennis",ru:"теннис",pic:P("tennis")},{w:"badminton",ru:"бадминтон",pic:P("badminton")},{w:"baseball",ru:"бейсбол",pic:P("baseball")},{w:"hockey",ru:"хоккей",pic:P("hockey")}],
+    sentences:[
+      {q:"How … do they play volleyball?", options:["often","many","much"], answer:0},
+      {q:"They play tennis … a week.", options:["two times","twice","second"], answer:1},
+      {q:"How often … she go swimming?", options:["do","is","does"], answer:2},
+      {q:"How often do you play hockey? — …", options:["Once a week.","One week.","Once week."], answer:0},
+      {q:"She goes to the gym three … a week.", options:["time","twice","times"], answer:2},
+      {q:"We play badminton … day.", options:["every","all","each a"], answer:0},
+      {q:"How often … they play baseball?", options:["does","do","are"], answer:1},
+      {order:"How often do they play volleyball?"},{order:"They play tennis twice a week."},{order:"I play hockey every day."},{order:"How often does he play baseball?"},{order:"She plays badminton once a week."}
+    ]});
+})();
+
+</script>
 </body>
 </html>
