@@ -2536,7 +2536,7 @@ function useReview() {
 /* ---------- autosave ---------- */
 const AUTOSAVE = { log: [], replaying: false, key: "", sig: "", off: false };
 function asScope() { return [...document.querySelectorAll("#lesson button")].filter(b => !b.closest(".abtn:not(.keep), .gw, .rubtn, .tip, [id^='count-'], .uet")); }
-function asFields() { return [...document.querySelectorAll("#studentName, #lesson input, #lesson textarea, #lesson select")]; }
+function asFields() { return [...document.querySelectorAll("#studentName, #lesson input, #lesson textarea, #lesson select")].filter(f => !f.closest(".uet")); }
 function asWrite() { if (AUTOSAVE.replaying || AUTOSAVE.off) return; try { localStorage.setItem(AUTOSAVE.key, JSON.stringify({ sig: AUTOSAVE.sig, at: Date.now(), log: AUTOSAVE.log })); } catch (e) {} }
 function asReplay(log) {
   const q = [], ST = window.setTimeout, SIV = Element.prototype.scrollIntoView, TONE = tone, SPK = window.speechSynthesis && speechSynthesis.speak;
