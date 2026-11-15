@@ -118,6 +118,7 @@ footer{border-top:1px solid var(--line);padding-block:22px 34px;color:var(--mute
   <span>Lessons and homework open in any browser: phone, tablet or computer.</span>
 </footer>
 
+<script src="holidays.js"></script>
 <script>
 /* ===== Settings: the books on the shelf (folder name on GitHub → how it looks) =====
    Add a new book: create a folder with that name on GitHub and add a line here (or it appears automatically). */
@@ -310,6 +311,11 @@ function viewHome(only) {
   [["01", "Choose your book", "Выберите учебник и уровень."], ["02", "Open the task", "Откройте урок или домашку и впишите своё имя."], ["03", "Send your report", "В конце нажмите «📸 My report» и пришлите скриншот Вэл."]].forEach(function (s) {
     var d = el("div", "step"); d.append(el("span", "n", s[0]), el("b", null, s[1])); var p = el("p", null, ""); p.append(el("span", "ru", s[2])); d.append(p); how.append(d); });
   w.append(how);
+  if (window.UE_CAL) {
+    var cs = el("section", "grp"); cs.id = "calendar"; var ch = el("h2", "sec", "Holidays calendar · Календарь праздников"); cs.append(ch, el("p", "secsub", "British, American, Russian and international holidays with themed lessons from this site. · Праздники Британии, США, России и международные — с тематическими уроками с этого сайта."));
+    var cbox = el("div"); cs.append(cbox); w.append(cs);
+    UE_CAL.render(cbox, { lessons: DATA.map(function (d) { return { title: d.title, href: href(d), file: d.file }; }) });
+  }
   if (FAILED) w.append(el("div", "empty", "Could not load the list of tasks. Please refresh the page in a minute. · Не удалось загрузить список заданий. Обновите страницу через минуту."));
   GROUPS.forEach(function (g) {
     if (only && only !== g.id) return;
