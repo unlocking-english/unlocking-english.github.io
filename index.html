@@ -84,6 +84,21 @@ h2.sec{font:700 30px/1.2 var(--f-display);color:var(--espresso);margin:0 0 6px}
 .copy:hover{border-color:var(--coffee)}.copy.ok{background:var(--correct);border-color:var(--correct);color:#fff}
 .empty{background:var(--paper);border:1px dashed var(--hazelnut);border-radius:18px;padding:22px;color:var(--muted);text-align:center}
 footer{border-top:1px solid var(--line);padding-block:22px 34px;color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between}
+.pairs{display:flex;flex-direction:column;gap:8px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:center}
+.pair .side{display:flex;flex-direction:column;gap:6px;min-width:0}
+.pair .link{position:relative;height:100%;min-height:20px}
+.pair .link::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px dashed var(--hazelnut)}
+.pair .link::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--coffee)}
+.pair.solo .link::before,.pair.solo .link::after{display:none}
+.pair .none{font-size:12px;color:var(--muted);padding:9px 14px;border:1px dashed var(--line);border-radius:14px;text-align:center}
+.pair .item.hw{background:var(--mist)}
+.phead{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);font-size:13px;font-weight:700;margin-bottom:4px}
+.phead .l{color:var(--coffee)}.phead .h{color:var(--denim)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.tag{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--paper);border:1px solid var(--line);color:var(--muted)}
+.tag.g{color:var(--denim);border-color:#C9D9E6}.tag.h{color:#A4483A;border-color:#E9C9C0}
+@media (max-width:640px){.pair,.phead{grid-template-columns:minmax(0,1fr)}.phead .x,.phead .h{display:none}.pair .link{height:18px;min-height:18px}.pair .link::before{left:50%;right:auto;top:0;bottom:0;border-top:0;border-left:2px dashed var(--hazelnut)}.pair .none{display:none}.pair.solo .link{display:none}}
 @media (max-width:860px){.hero{grid-template-columns:1fr;gap:22px;padding-block:32px 24px}.hero .logo{max-width:300px}.shelf{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}}
 @media (max-width:620px){.how{grid-template-columns:1fr}.shelf{grid-template-columns:1fr}.bar img{height:32px}.search{width:100%}.bar .sp{display:none}}
 @media (prefers-reduced-motion:reduce){.book{transition:none}html{scroll-behavior:auto}}
@@ -159,6 +174,16 @@ function unitOf(n) {
   m = n.match(/(?:^|[^a-z0-9])(\d{1,2})([a-d])(?=[^a-z0-9]|$)/i); if (m) return { k: +m[1] + (m[2].toLowerCase().charCodeAt(0) - 96) / 10, label: "Unit " + m[1] + m[2].toUpperCase() };
   return { k: 999, label: "" };
 }
+/* topics of books without units: holidays and grammar themes from the file name */
+var TOPIC_RX = [
+  ["h","Halloween",/halloween|trick-or-treat|spooky|haunted/i],["h","Christmas & New Year",/christmas|new-?year|xmas/i],["h","Autumn",/autumn|summer-blues/i],["h","Valentine's Day",/valentine/i],["h","Easter",/easter/i],
+  ["g","Word order (SVOMPT)",/svompt|word-order|how-english-works/i],["g","Present Simple",/present-simple/i],["g","Past Simple",/past-simple/i],["g","Present Continuous",/present-continuous/i],["g","Questions",/questions|ask-me/i],["g","Plans: going to",/going-to|any-plans/i],["g","Prepositions",/preposition/i],["g","There is / there are",/there-is/i],
+  ["t","Daily routine",/daily-routine|my-day|dream-day/i],["t","Clothes",/clothes|wearing|looks/i],["t","Love & relationships",/love|relationship/i],["t","School & classroom",/school|classroom/i],["t","Phonics",/phonics/i],["t","Reading",/reading/i],["t","Home",/at-home/i]];
+function topicsOf(file, fx) {
+  if (fx && fx.topic) return String(fx.topic).split(/\s*,\s*/).map(function (x) { return ["t", x]; });
+  var out = []; TOPIC_RX.forEach(function (r) { if (r[2].test(file) && !out.some(function (o) { return o[1] === r[1]; })) out.push([r[0], r[1]]); });
+  return out;
+}
 function lvRank(l) { var c = String(l).toLowerCase().replace(/.*·\s*/, ""); var i = LEVELS.indexOf(c); if (i > -1) return i; var n = String(l).match(/(\d+)/); return n ? 100 + +n[1] : 50; }
 var DATA = [], LOADED = false, FAILED = false;
 
@@ -178,7 +203,9 @@ function parse(paths) {
     var dir = fx.dir || parts[0] || guessBook(file), bk = BOOKS.filter(function (x) { return x.dir === dir; })[0];
     var level = fx.level || parts[1] || (parts.length ? "" : (bk && (bk.kids || bk.num) ? guessKidsLevel(file, bk) : guessLevel(file))) || (bk && bk.defLevel) || "", tf = (parts[2] || "").toLowerCase();
     var type = fx.type || TYPES[tf] || (parts[2] ? parts[2] : (/homework|\bhw\b/i.test(file) ? "homework" : "lessons"));
-    return { path: p, file: file, dir: dir, level: level, type: type, unit: unitOf(file), title: fx.title || pretty(file) };
+    var unit = unitOf(file), tags = topicsOf(file, fx);
+    if (unit.k === 999 && tags.length) { var main = tags.filter(function (t) { return t[0] !== "g"; })[0] || tags[0]; unit = { k: 500, label: main[1] }; }
+    return { path: p, file: file, dir: dir, level: level, type: type, unit: unit, tags: tags, title: fx.title || pretty(file) };
   }).filter(Boolean);
   DATA.forEach(function (d) { if (!BOOKS.some(function (b) { return b.dir === d.dir; })) BOOKS.push({ dir: d.dir, name: d.dir === "Other" ? "Other · Другое" : d.dir, sub: "", color: "#7A6555" }); });
 }
@@ -194,17 +221,47 @@ function copyBtn(url) {
 function item(d, showCourse) {
   var row = el("div", "item"), a = el("a", null, d.title); a.href = href(d);
   if (showCourse) a.append(el("span", "crs", d.dir + (d.level ? " · " + d.level : "") + " · " + (TYPE_LABEL[d.type] || d.type)));
+  if (d.tags && d.tags.length) { var tg = el("span", "tags"); d.tags.forEach(function (t) { tg.append(el("span", "tag " + t[0], t[1])); }); a.append(tg); }
+  if (d.type === "homework") row.classList.add("hw");
   row.append(a, copyBtn(location.origin + "/" + href(d))); return row;
 }
 function listByUnit(items, showCourse) {
   var list = el("div", "list"), last = null;
-  items.sort(function (a, b) { return a.unit.k - b.unit.k || a.title.localeCompare(b.title); }).forEach(function (d) {
+  items.sort(function (a, b) { return a.unit.k - b.unit.k || a.unit.label.localeCompare(b.unit.label) || a.title.localeCompare(b.title); }).forEach(function (d) {
     if (d.unit.label !== last) { last = d.unit.label; if (last) list.append(el("div", "unit", last)); }
     list.append(item(d, showCourse));
   });
   return list;
 }
 
+/* lesson ↔ homework pairs, matched by unit and shared words in the file name */
+var STOPW = /^(homework|hw|unlocking|english|lesson|lessons|full|workbook|wb|short|demo|notes|html|unit|review|a1|a2|a2plus|b1|b1plus|b2|kids|teens|topics|grammar|the|and|of|to|a|an|in|on|at|1|2|3|gb|vb|sb|plus|advanced|version)$/i;
+function toks(d) { var b = squash(d.dir); return d.file.replace(/\.html?$/i, "").toLowerCase().split(/[^a-z0-9]+/).filter(function (w) { return w && !STOPW.test(w) && w !== b && !/^\d+[a-d]?$/.test(w) && !/^unit\d/.test(w); }); }
+function sim(a, b) { if (!a.length || !b.length) return 0; var n = a.filter(function (x) { return b.indexOf(x) > -1; }).length; return n / Math.min(a.length, b.length); }
+function pairList(li) {
+  var L = li.filter(function (d) { return d.type === "lessons"; }), H = li.filter(function (d) { return d.type === "homework"; });
+  var P = L.map(function (d) { return { les: d, hw: [], k: d.unit.k, label: d.unit.label, t: toks(d) }; }), loose = [];
+  H.forEach(function (h) {
+    var th = toks(h), best = null, bs = 0;
+    P.forEach(function (p) { if (p.label !== h.unit.label) return; var sc = sim(th, p.t); if (sc > bs) { bs = sc; best = p; } });
+    var same = P.filter(function (p) { return p.label === h.unit.label && p.label; });
+    if (!best && same.length === 1) { best = same[0]; bs = .5; }
+    if (best && bs >= .5) { best.hw.push(h); return; }
+    var lr = loose.filter(function (x) { return x.label === h.unit.label; })[0];
+    if (lr) lr.hw.push(h); else loose.push({ les: null, hw: [h], k: h.unit.k, label: h.unit.label });
+  });
+  P = P.concat(loose).sort(function (a, b) { return a.k - b.k || a.label.localeCompare(b.label) || ((a.les || a.hw[0]).title).localeCompare((b.les || b.hw[0]).title); });
+  var wrap = el("div", "pairs"), hd = el("div", "phead"); hd.append(el("span", "l", "Lesson · Урок"), el("span", "x", ""), el("span", "h", "Homework · Домашка")); wrap.append(hd);
+  var last = null;
+  P.forEach(function (p) {
+    if (p.label !== last) { last = p.label; if (last) wrap.append(el("div", "unit", last)); }
+    var row = el("div", "pair" + (p.les && p.hw.length ? "" : " solo")), a = el("div", "side"), b = el("div", "side");
+    if (p.les) a.append(item(p.les)); else a.append(el("div", "none", "урок на доске"));
+    if (p.hw.length) p.hw.forEach(function (h) { b.append(item(h)); }); else b.append(el("div", "none", "без домашки"));
+    row.append(a, el("div", "link"), b); wrap.append(row);
+  });
+  return wrap;
+}
 /* ===== views ===== */
 function shelfOf(g) {
   var shelf = el("div", "shelf");
@@ -278,6 +335,7 @@ function viewBook(b, onlyLevel) {
     var box = el("section", "level"); box.append(el("h2", null, l || "All levels"));
     var li = items.filter(function (d) { return d.level === l; }), types = uniq(li.map(function (d) { return d.type; }));
     types.sort(function (a, c) { var o = { lessons: 0, homework: 1 }; return (a in o ? o[a] : 2) - (c in o ? o[c] : 2) || a.localeCompare(c); });
+    if (types.indexOf("lessons") > -1 && types.indexOf("homework") > -1) { box.append(pairList(li)); var rest = types.filter(function (t) { return t !== "lessons" && t !== "homework"; }); types = rest; if (!rest.length) { w.append(box); return; } }
     var cols = el("div", "cols");
     types.forEach(function (t) { var col = el("div", "col"); col.append(el("h3", "t-" + (TYPE_LABEL[t] ? t : "other"), TYPE_LABEL[t] || t)); col.append(listByUnit(li.filter(function (d) { return d.type === t; }))); cols.append(col); });
     box.append(cols); w.append(box);
