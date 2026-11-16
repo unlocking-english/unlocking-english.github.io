@@ -2182,6 +2182,13 @@ function guessGame(key) {
   newRound(); drawLevel();
   return h("div", { class: "card game uet-keep" }, lvlBar, help, h("div", { class: "ckl" }, h("b", null, "Ask questions"), score), qbox, typeRow, box, guessH, gbox, h("div", { class: "row-actions" }, again));
 }
+/* separate trainer: 8 body parts + tricky animals */
+const BP_WORDS = BODY_MEET.map(([, w, ru]) => ({ w, ru })).concat([["tortoise", "черепаха (сухопутная)"], ["crocodile", "крокодил"], ["butterfly", "бабочка"], ["whale", "кит"], ["pigeon", "голубь"], ["mice", "мыши"]].map(([w, ru]) => ({ w, ru })));
+const BP_SENT = PARTS.map(([s]) => { const m = s.match(/\{([^}]+)\}/), opts = m[1].split("|"); return { q: s.replace(m[0], "…"), options: opts, answer: opts[0] }; }).concat([
+  { q: "Which animal has a hard shell?", options: ["a tortoise", "a whale", "a pigeon"], answer: "a tortoise" }, { q: "Which animal has feathers?", options: ["a pigeon", "a crocodile", "a mouse"], answer: "a pigeon" },
+  { q: "Which animal is the biggest?", options: ["a whale", "a crocodile", "a tortoise"], answer: "a whale" }, { q: "Which insect has beautiful wings?", options: ["a butterfly", "a spider", "a rat"], answer: "a butterfly" },
+  { q: "One mouse, two …", options: ["mice", "mouses", "mices"], answer: "mice" }, { q: "Which animal has a long tail, sharp teeth and lives in rivers?", options: ["a crocodile", "a pigeon", "a tortoise"], answer: "a crocodile" },
+  { order: "A tortoise can hide in its shell." }, { order: "An elephant has a long trunk." }, { order: "A pigeon has grey feathers." }]);
 
 function buildHeader() {
   $("#lessonEyebrow").textContent = LESSON.eyebrow;
@@ -2226,6 +2233,8 @@ function build() {
     s.append(...subT("Ex 4A", "Body parts", "Choose the correct word: feather, fur, shell, skin, tail, trunk, web, wing.", "Выбери правильное слово: перо, мех, панцирь, кожа, хвост, хобот, паутина, крыло.", [["feather", "перо"], ["fur", "мех"], ["shell", "панцирь, раковина"], ["trunk", "хобот"], ["web", "паутина"]]));
     s.append(choiceList("k2", PARTS, 3, "Key 02 · Ex 4A · Body parts", true));
     s.append(pronTipEl({ w: "feather", ipa: "ˈfeðə", ru: "перо", tip: "ð — the tip of the tongue between the teeth, with voice. Not «з», not «д». Same sound: the, mother, weather.", pairs: [["feathers", "ˈfeðəz"], ["the", "ðə"], ["mother", "ˈmʌðə"]] }));
+    s.append(...subT("Ex 4B", "🎲 Trainer: body parts + tricky animals", "New exercises every round: spelling, listening, translation, choose the word. Mistakes come back. Do at least one round.", "Новые упражнения каждый раунд: правописание, на слух, перевод, выбор слова. Ошибки возвращаются. Сделай хотя бы один раунд.", [["tricky", "сложный"]]));
+    practiceGen(s, { key: "k2", name: "Key 02 · Ex 4B · Trainer: body parts + tricky animals", size: 10, words: BP_WORDS, sentences: BP_SENT });
     s.append(...subT("Ex 5", "Guess the animal!", "I'm thinking of an animal. Ask yes / no questions, then guess. Play 3 levels — each level gives you less help. Then swap: think of an animal — your teacher asks!", "Я загадал животное. Задавай вопросы да/нет, потом угадай. Пройди 3 уровня — на каждом подсказок меньше. Потом поменяйтесь: загадай ты — спрашивает учитель!", [["guess", "угадать"], ["swap", "поменяться"]]));
     s.append(guessGame("k2"));
   }
