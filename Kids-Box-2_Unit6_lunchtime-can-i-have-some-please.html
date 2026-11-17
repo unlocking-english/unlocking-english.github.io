@@ -829,6 +829,7 @@ body{overflow-x:hidden}
 .grid.g5{grid-template-columns:repeat(3,minmax(0,1fr))}
 .artbox .p3d{width:96px;height:96px}
 .nbpage .ln{margin:0;font:700 17px/40px var(--f-sans)}.nbpage .ln.todo{color:var(--muted);font-weight:600}
+.hidew .etile .w,.hidew .etile .r{visibility:hidden}
 
 </style>
 </head>
@@ -1200,7 +1201,7 @@ buildPrize({ medal:"trophy", title:"Lunchtime Star!", titleRu:"Звезда об
 
 function TAIL(){
   [["#dBat1","chicken"],["#dBat2","apple"],["#dLeaf1","chips"],["#dLeaf2","icecream"],["#dPump","burger"]].forEach(([s,k])=>{ const n=$(s); if(n) n.innerHTML=P3(k); });
-  const GSEL=".q > span, p.task, .guide, .gl, .gtable div, .code b, .code p, .bb h3, .bb li, .story .en, .opt, .vchip, .rowlab, .etile .w, .mbtn";
+  const GSEL=".q > span, p.task, .guide, .gl, .gtable div, .code b, .code p, .bb h3, .bb li, .story .en, .opt, .vchip, .rowlab, .mbtn";
   const glossify=root=>{ const nodes=[]; const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const p=n.parentElement; if(!p||!/[A-Za-z]/.test(n.nodeValue)||/[ˈɒəʊɑːʃʒθðæɪ]/.test(n.nodeValue)) return 2; if(p.closest(".gw,input,textarea,script,style,.ru,.ruh,.gpop,.trn,svg,.pg,.uet,.bru,.r,#teacher,.say,.who")) return 2; return p.closest(GSEL)?1:2; }});
     while(w.nextNode()) nodes.push(w.currentNode);
     nodes.forEach(n=>{ const f=document.createDocumentFragment(); n.nodeValue.split(/([A-Za-z][A-Za-z'’]*)/).forEach((t,i)=>{ if(!t) return; if(i%2){ const s=document.createElement("span"); s.className="gw"+(HARD.has(gkey(t))?" hard":""); s.dataset.k=gkey(t); s.textContent=t; f.appendChild(s); } else f.appendChild(document.createTextNode(t)); }); n.parentNode.replaceChild(f,n); }); };
