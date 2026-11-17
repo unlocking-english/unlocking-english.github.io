@@ -237,7 +237,7 @@ function listByUnit(items, showCourse) {
 
 /* lesson ↔ homework pairs, matched by unit and shared words in the file name */
 var STOPW = /^(homework|hw|unlocking|english|lesson|lessons|full|workbook|wb|short|demo|notes|html|unit|review|a1|a2|a2plus|b1|b1plus|b2|kids|teens|topics|grammar|the|and|of|to|a|an|in|on|at|1|2|3|gb|vb|sb|plus|advanced|version)$/i;
-function toks(d) { var b = squash(d.dir); return d.file.replace(/\.html?$/i, "").toLowerCase().split(/[^a-z0-9]+/).filter(function (w) { return w && !STOPW.test(w) && w !== b && !/^\d+[a-d]?$/.test(w) && !/^unit\d/.test(w); }); }
+function toks(d) { var b = squash(d.dir); return d.file.replace(/\.html?$/i, "").toLowerCase().split(/[^a-z0-9]+/).map(function (w) { var m = w.match(/^(?:lesson|homework|hw|part)(\d)$/); return m ? "n" + m[1] : w; }).filter(function (w) { return w && !STOPW.test(w) && w !== b && !/^\d+[a-d]?$/.test(w) && !/^unit\d/.test(w); }); }
 function sim(a, b) { if (!a.length || !b.length) return 0; var n = a.filter(function (x) { return b.indexOf(x) > -1; }).length; return n / Math.min(a.length, b.length); }
 function pairList(li) {
   var L = li.filter(function (d) { return d.type === "lessons"; }), H = li.filter(function (d) { return d.type === "homework"; });
