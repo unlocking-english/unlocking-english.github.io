@@ -119,6 +119,7 @@ footer{border-top:1px solid var(--line);padding-block:22px 34px;color:var(--mute
 </footer>
 
 <script src="holidays.js"></script>
+<script src="weather.js"></script>
 <script>
 /* ===== Settings: the books on the shelf (folder name on GitHub → how it looks) =====
    Add a new book: create a folder with that name on GitHub and add a line here (or it appears automatically). */
@@ -315,6 +316,10 @@ function viewHome(only) {
     var cs = el("section", "grp"); cs.id = "calendar"; var ch = el("h2", "sec", "Holidays calendar · Календарь праздников"); cs.append(ch, el("p", "secsub", "British, American, Russian and international holidays with themed lessons from this site. · Праздники Британии, США, России и международные — с тематическими уроками с этого сайта."));
     var cbox = el("div"); cs.append(cbox); w.append(cs);
     UE_CAL.render(cbox, { lessons: DATA.map(function (d) { return { title: d.title, href: href(d), file: d.file }; }) });
+  }
+  if (window.UE_WX) {
+    var ws = el("section", "grp"); ws.id = "weather"; ws.append(el("h2", "sec", "Weather warm-up · Разминка о погоде"), el("p", "secsub", "Authentic weather words for every month: tap a card for the meaning and an example. · Живые слова о погоде на каждый месяц: нажмите на карточку, чтобы увидеть перевод и пример."));
+    var wbox = el("div"); ws.append(wbox); w.append(ws); UE_WX.render(wbox);
   }
   if (FAILED) w.append(el("div", "empty", "Could not load the list of tasks. Please refresh the page in a minute. · Не удалось загрузить список заданий. Обновите страницу через минуту."));
   GROUPS.forEach(function (g) {
