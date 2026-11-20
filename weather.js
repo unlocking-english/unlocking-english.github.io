@@ -5,9 +5,9 @@
   var MON_RU = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
   // KIDS: [emoji, word, ru], frames, game
   var K = [
-    { w: [["❄️", "snowy", "снежно"], ["🥶", "cold", "холодно"], ["⛄", "snowman", "снеговик"], ["🧤", "gloves", "перчатки"], ["🌨️", "it's snowing", "идёт снег"], ["🛷", "sledge", "санки"]],
+    { w: [["❄️", "snowy", "снежно"], ["🥶", "cold", "холодно"], ["⛄", "snowman", "снеговик"], ["🧤", "gloves", "перчатки", "mittens"], ["🌨️", "it's snowing", "идёт снег", "snow-globe"], ["🛷", "sledge", "санки", "sleigh"]],
       f: ["What's the weather like today? It's snowy and cold.", "In January I wear my hat and gloves."], g: "Show me: you are very cold! Brrr! Now build a snowman with your hands." },
-    { w: [["🥶", "freezing", "очень холодно"], ["🧊", "icy", "скользко, лёд"], ["🌬️", "windy", "ветрено"], ["❄️", "snowflake", "снежинка"], ["🧣", "scarf", "шарф"], ["☁️", "cloudy", "облачно"]],
+    { w: [["🥶", "freezing", "очень холодно"], ["🧊", "icy", "скользко, лёд"], ["🌬️", "windy", "ветрено"], ["❄️", "snowflake", "снежинка", "snowflake"], ["🧣", "scarf", "шарф", "scarf"], ["☁️", "cloudy", "облачно"]],
       f: ["It's freezing! Put on your scarf.", "Be careful, it's icy!"], g: "Snowflake game: say a weather word every time you 'catch' a snowflake." },
     { w: [["🌤️", "sunny", "солнечно"], ["💧", "melting", "тает"], ["🌧️", "rainy", "дождливо"], ["☔", "umbrella", "зонт"], ["🌷", "flowers", "цветы"], ["🌡️", "warm", "тепло"]],
       f: ["The snow is melting!", "It's a bit warm and sunny today."], g: "Spring or winter? I say a word, you show 🌷 (spring) or ❄️ (winter)." },
@@ -21,13 +21,13 @@
       f: ["It's very hot. I want an ice cream!", "Can you hear the thunder?"], g: "Hot or cold? Fan yourself for hot words, shiver for cold words." },
     { w: [["☀️", "sunny", "солнечно"], ["🌡️", "warm", "тепло"], ["🌧️", "rain", "дождь"], ["🍎", "apples", "яблоки"], ["🌅", "sunset", "закат"], ["⛅", "cloudy", "облачно"]],
       f: ["It's sunny in the morning and rainy in the evening.", "Summer is nearly over!"], g: "Finish my sentence: In August I like… when it's…" },
-    { w: [["🍂", "leaves", "листья"], ["🌬️", "windy", "ветрено"], ["🌥️", "cloudy", "облачно"], ["🧥", "jacket", "куртка"], ["🌦️", "rainy", "дождливо"], ["🍄", "mushrooms", "грибы"]],
+    { w: [["🍂", "leaves", "листья", "maple-leaf"], ["🌬️", "windy", "ветрено"], ["🌥️", "cloudy", "облачно"], ["🧥", "jacket", "куртка"], ["🌦️", "rainy", "дождливо", "umbrella-open"], ["🍄", "mushrooms", "грибы", "mushroom"]],
       f: ["It's windy. The leaves are falling.", "Put on your jacket!"], g: "Leaf catch: catch the 'leaf' (paper ball) and say one weather word." },
-    { w: [["🍁", "autumn", "осень"], ["🌧️", "rainy", "дождливо"], ["🌫️", "foggy", "туманно"], ["🥶", "chilly", "прохладно"], ["☂️", "umbrella", "зонт"], ["🎃", "pumpkin", "тыква"]],
+    { w: [["🍁", "autumn", "осень", "autumn-tree"], ["🌧️", "rainy", "дождливо"], ["🌫️", "foggy", "туманно"], ["🥶", "chilly", "прохладно", "scarf"], ["☂️", "umbrella", "зонт", "umbrella"], ["🎃", "pumpkin", "тыква"]],
       f: ["It's foggy. I can't see!", "It's chilly today. Take your umbrella."], g: "Foggy game: whisper a weather word, your friend guesses it." },
-    { w: [["🌧️", "rainy", "дождливо"], ["☁️", "grey", "пасмурно, серо"], ["🥶", "cold", "холодно"], ["🌨️", "first snow", "первый снег"], ["💨", "windy", "ветрено"], ["🧦", "warm socks", "тёплые носки"]],
+    { w: [["🌧️", "rainy", "дождливо"], ["☁️", "grey", "пасмурно, серо"], ["🥶", "cold", "холодно"], ["🌨️", "first snow", "первый снег", "snowflake"], ["💨", "windy", "ветрено"], ["🧦", "warm slippers", "тёплые тапочки", "slippers"]],
       f: ["It's grey and rainy today.", "Look! The first snow!"], g: "Weather report: be a TV weather presenter for 20 seconds." },
-    { w: [["❄️", "snowy", "снежно"], ["🥶", "frosty", "морозно"], ["⛄", "snowman", "снеговик"], ["🎄", "Christmas tree", "ёлка"], ["🧤", "mittens", "варежки"], ["🌙", "dark", "темно"]],
+    { w: [["❄️", "snowy", "снежно", "snowy-tree"], ["🥶", "frosty", "морозно", "snowflake"], ["⛄", "snowman", "снеговик"], ["🎄", "Christmas tree", "ёлка", "christmas-tree"], ["🧤", "mittens", "варежки", "mittens-red"], ["🌙", "dark", "темно"]],
       f: ["It's snowy and frosty. Let's make a snowman!", "It gets dark very early in December."], g: "Snowball questions: throw a 'snowball' and ask: What's the weather like today?" }
   ];
   // TEENS & ADULTS: [word, ru, example], idiom [en, ru], questions
@@ -57,6 +57,17 @@
     { w: [["frosty", "морозный", "A frosty, sparkling morning."], ["snowy", "снежный", "We might have a snowy weekend."], ["crisp", "морозный и ясный", "Crisp snow crunches under your boots."], ["below zero", "ниже нуля", "It's ten below zero today."], ["icy", "скользкий, обледенелый", "The steps are icy — hold the rail."], ["a white Christmas", "снежное Рождество", "Will we have a white Christmas this year?"], ["cosy", "уютный", "Nothing beats a cosy evening when it's snowing outside."], ["the shortest day", "самый короткий день", "The 21st is the shortest day of the year."]],
       i: ["snowed under (with work)", "завален работой"], q: ["Have you ever had a white Christmas?", "How do you make your home cosy in winter?", "Are you snowed under with work or school this month?"] }
   ];
+  // COSY picture words (autumn–winter): month index -> [[img, en, ru]]
+  var C = {
+    8: [["autumn-tree", "golden leaves", "золотые листья"], ["mushroom", "mushroom picking", "сбор грибов"], ["acorn", "an acorn", "жёлудь"], ["sunflowers", "sunflowers", "подсолнухи"], ["maple-syrup", "maple syrup", "кленовый сироп"], ["cafe", "a cosy café", "уютное кафе"]],
+    9: [["pumpkin-latte", "a pumpkin spice latte", "тыквенный латте"], ["scarf", "a chunky scarf", "объёмный шарф"], ["leaf", "fallen leaves", "опавшие листья"], ["candle", "candlelight", "свет свечей"], ["blanket", "a tartan blanket", "клетчатый плед"], ["bonfire", "a bonfire", "костёр"]],
+    10: [["blanket-tea", "wrapped up in a blanket", "закутаться в плед"], ["kettle", "put the kettle on", "поставить чайник"], ["lie-in", "a lie-in", "поспать подольше"], ["slippers", "fluffy slippers", "пушистые тапочки"], ["rainy-window", "rain on the window", "дождь за окном"], ["cinnamon", "cinnamon", "корица"]],
+    11: [["gingerbread-house", "a gingerbread house", "пряничный домик"], ["christmas-tree", "decorate the tree", "наряжать ёлку"], ["stocking", "a Christmas stocking", "рождественский носок"], ["present", "wrap presents", "упаковывать подарки"], ["hot-chocolate", "hot chocolate", "горячий шоколад"], ["sleigh", "a sleigh ride", "катание на санях"]],
+    0: [["snow-globe", "a snow globe", "снежный шар"], ["mittens", "woolly mittens", "шерстяные варежки"], ["snow-boot", "snow boots", "зимние сапоги"], ["armchair", "curl up in an armchair", "свернуться в кресле"], ["cocoa-marshmallows", "cocoa with marshmallows", "какао с маршмеллоу"], ["cinnamon-roll", "a cinnamon roll", "булочка с корицей"]],
+    1: [["snuggled-up", "snuggled up", "укутанный, уютно устроившийся"], ["snowflake-cookie", "baking cookies", "печь печенье"], ["snowflake", "a snowflake", "снежинка"], ["boots", "cosy boots", "тёплые ботинки"], ["croissant", "a warm croissant", "тёплый круассан"], ["snowy-tree", "snow-covered trees", "заснеженные деревья"]]
+  };
+  var IMG = (document.currentScript && document.currentScript.src || "").replace(/[^\/]*$/, "") + "wx/";
+  function pic(n, cls) { return '<img class="' + (cls || "uewx-i") + '" src="' + IMG + n + '.webp" alt="" loading="lazy">'; }
   var CSS = ".uewx{background:var(--paper,#fff);border:1px solid var(--line,#E6DCD0);border-radius:24px;padding:20px;box-shadow:0 1px 2px rgba(74,52,38,.04),0 8px 24px rgba(74,52,38,.06);color:var(--ink,#3B2A1F)}" +
     ".uewx *{box-sizing:border-box}.uewx-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}" +
     ".uewx-mode{display:inline-flex;background:var(--besh,#F9F6F0);border:1px solid var(--line,#E6DCD0);border-radius:999px;padding:3px}.uewx-mode button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font:600 13px Montserrat,system-ui,sans-serif;color:var(--coffee,#6F4E37);cursor:pointer}.uewx-mode button.on{background:var(--espresso,#4A3426);color:#fff}" +
@@ -69,7 +80,10 @@
     ".uewx-low{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:14px}.uewx-box{background:var(--mist,#E4EEF5);border-radius:16px;padding:12px 14px;font-size:14px}.uewx-box h4{margin:0 0 6px;font:700 14px Montserrat,system-ui,sans-serif;color:var(--denim,#3E6A8A)}.uewx-box ul{margin:0;padding-left:18px}.uewx-box li{margin:3px 0}" +
     ".uewx-box.s{background:var(--sand,#EFE6DC)}.uewx-box.s h4{color:var(--coffee,#6F4E37)}.uewx-q{font:600 16px/1.4 Montserrat,system-ui,sans-serif;margin:6px 0 8px;min-height:44px}.uewx-btn{border:1px solid var(--coffee,#6F4E37);background:var(--paper,#fff);color:var(--coffee,#6F4E37);border-radius:999px;padding:6px 14px;font:600 13px Montserrat,system-ui,sans-serif;cursor:pointer}" +
     ".uewx-ru{color:var(--muted,#7A6555);font-size:13px}" +
-    "@media(max-width:640px){.uewx{padding:14px}.uewx-low{grid-template-columns:1fr}.uewx-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.uewx-mon b{min-width:120px}}";
+    ".uewx-i{width:44px;height:44px;object-fit:contain;display:block;margin-bottom:6px}" +
+    ".uewx-cosy{margin-top:14px;border-top:1px dashed var(--line,#E6DCD0);padding-top:12px}.uewx-cosy h4{margin:0 0 8px;font:700 14px Montserrat,system-ui,sans-serif;color:var(--coffee,#6F4E37)}" +
+    ".uewx-cg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.uewx-cc{text-align:center;font-size:13px;font-weight:600;line-height:1.25}.uewx-cc img{width:72px;height:72px;object-fit:contain;display:block;margin:0 auto 4px}.uewx-cc small{display:block;font-weight:400;color:var(--muted,#7A6555);font-size:12px}" +
+    "@media(max-width:640px){.uewx-cg{grid-template-columns:repeat(3,minmax(0,1fr))}.uewx-cc img{width:60px;height:60px}.uewx{padding:14px}.uewx-low{grid-template-columns:1fr}.uewx-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.uewx-mon b{min-width:120px}}";
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function render(el, o) {
     o = o || {};
@@ -81,7 +95,7 @@
         '<div class="uewx-mon"><button type="button" class="uewx-nav" data-d="-1" aria-label="Previous month">‹</button><b>' + MON_EN[m] + '<small>' + MON_RU[m] + '</small></b><button type="button" class="uewx-nav" data-d="1" aria-label="Next month">›</button></div></div>';
       if (mode === "kids") {
         var k = K[m];
-        s += '<div class="uewx-cards">' + k.w.map(function (x) { return '<button type="button" class="uewx-c"><div class="e">' + x[0] + '</div><div class="w">' + esc(x[1]) + '</div><div class="h">' + esc(x[2]) + '</div><div class="tap">tap · нажми</div></button>'; }).join("") + "</div>";
+        s += '<div class="uewx-cards">' + k.w.map(function (x) { return '<button type="button" class="uewx-c">' + (x[3] ? pic(x[3]) : '<div class="e">' + x[0] + '</div>') + '<div class="w">' + esc(x[1]) + '</div><div class="h">' + esc(x[2]) + '</div><div class="tap">tap · нажми</div></button>'; }).join("") + "</div>";
         s += '<div class="uewx-low"><div class="uewx-box"><h4>Say it! · Скажи</h4><ul>' + k.f.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + '<li>What\'s the weather like today? It\'s …</li></ul></div><div class="uewx-box s"><h4>🎲 Game · Игра</h4><div>' + esc(k.g) + "</div></div></div>";
       } else {
         var a = A[m];
@@ -89,6 +103,7 @@
         s += '<div class="uewx-low"><div class="uewx-box"><h4>💬 Small talk · Вопрос для разминки</h4><div class="uewx-q">' + esc(a.q[qi % a.q.length]) + '</div><button type="button" class="uewx-btn" data-q="1">Next question ›</button></div>' +
           '<div class="uewx-box s"><h4>🌂 Idiom of the month · Идиома месяца</h4><div class="uewx-q">' + esc(a.i[0]) + '</div><div class="uewx-ru">' + esc(a.i[1]) + '</div></div></div>';
       }
+      if (C[m]) s += '<div class="uewx-cosy"><h4>☕ Cosy picture words · Уютные слова месяца</h4><div class="uewx-cg">' + C[m].map(function (x) { return '<div class="uewx-cc">' + pic(x[0], "") + esc(x[1]) + "<small>" + esc(x[2]) + "</small></div>"; }).join("") + "</div></div>";
       el.innerHTML = s + "</div>";
     }
     el.addEventListener("click", function (e) {
