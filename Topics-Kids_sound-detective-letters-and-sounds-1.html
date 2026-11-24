@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sound Detective — Letters &amp; Sounds Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white:#ffffff; --off:#faf7ff; --ink:#2b2245; --soft:#7a7195;
+  --rule:#ece5fb; --rule2:#dccdf7;
+  --purple:#7c3aed; --purple-l:#f2e9ff; --purple-m:#d9c2fb; --deep:#5b21b6;
+  --pink:#ec4899; --pink-l:#fdeaf3;
+  --orange:#f97316; --orange-l:#fff1e3;
+  --teal:#0d9488; --teal-l:#e1f6f3;
+  --gold:#eab308; --gold-l:#fef9e3;
+  --rose:#e11d48; --rose-l:#ffeef1;
+  --shadow-sm:0 2px 8px rgba(124,58,237,.08), 0 1px 3px rgba(124,58,237,.06);
+  --shadow:0 8px 24px rgba(124,58,237,.14), 0 2px 8px rgba(124,58,237,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:var(--off);color:var(--ink);line-height:1.6;}
+
+.ru{font-size:11.5px;color:var(--soft);font-style:italic;font-weight:600;}
+.sub-ru{font-size:11.5px;color:var(--soft);opacity:.85;margin-top:2px;font-style:italic;}
+.intro-ru{font-size:12.5px;color:var(--deep);opacity:.85;margin-top:5px;font-weight:500;font-style:italic;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--purple) 0%,#a855f7 55%,var(--pink) 100%);padding:52px 24px 46px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.15),transparent 45%),radial-gradient(circle at 85% 75%,rgba(255,255,255,.12),transparent 40%);}
+.hero-inner{position:relative;max-width:720px;margin:0 auto;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'Fredoka',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:6px 16px;border-radius:20px;margin-bottom:18px;}
+.hero h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:clamp(2rem,5vw,3rem);line-height:1.15;margin-bottom:14px;}
+.hero p{font-size:15.5px;opacity:.92;max-width:480px;margin:0 auto 6px;}
+.hero p.ru-line{font-size:13.5px;opacity:.85;max-width:480px;margin:0 auto 22px;font-style:italic;}
+.hero-letters{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.hero-letter{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:18px;}
+
+main{max-width:760px;margin:0 auto;padding:44px 20px 120px;}
+
+/* SECTION HEAD */
+.sec-hd{display:flex;align-items:center;gap:14px;margin:56px 0 22px;}
+.sec-hd:first-of-type{margin-top:0;}
+.sec-num{flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:16px;}
+.sec-hd h2{font-family:'Fredoka',sans-serif;font-weight:600;font-size:19px;color:var(--ink);}
+.sec-hd .sub{font-size:12.5px;color:var(--soft);margin-top:2px;}
+
+.intro-card{background:var(--purple-l);border:1px solid var(--purple-m);border-radius:14px;padding:16px 20px;margin-bottom:22px;font-size:13.5px;color:var(--deep);font-weight:600;}
+.note-card{background:var(--orange-l);border:1px solid #fcd9b0;border-radius:12px;padding:12px 18px;margin-bottom:20px;font-size:12.5px;color:#9a4a12;}
+
+/* MC ITEM (shared: letter->sound, sound->letter, detective) */
+.mc-item{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.mc-prompt{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.mc-big{font-family:'Fredoka',sans-serif;font-size:34px;font-weight:600;color:var(--purple);background:var(--purple-l);border:1.5px solid var(--purple-m);border-radius:12px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mc-text{font-size:14px;color:var(--ink);font-weight:600;}
+.mc-opts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.mc-opt{border:2px solid var(--rule2);border-radius:10px;padding:10px 20px;font-family:'Fredoka',sans-serif;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .15s;background:var(--white);display:flex;align-items:center;gap:8px;}
+.mc-opt:hover:not(.disabled){border-color:var(--purple);background:var(--purple-l);}
+.mc-opt.correct{border-color:var(--teal);background:var(--teal-l);color:#0f766e;}
+.mc-opt.wrong{border-color:var(--rose);background:var(--rose-l);color:#9f1239;}
+.mc-opt.disabled{cursor:default;pointer-events:none;}
+.mc-opt.disabled:not(.correct):not(.wrong){opacity:.4;}
+.opt-sound-btn{background:none;border:none;font-size:14px;cursor:pointer;padding:0;pointer-events:all;}
+
+.speaker-btn{flex-shrink:0;background:var(--white);border:1.5px solid var(--rule2);color:var(--purple);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.speaker-btn:hover{border-color:var(--purple);background:var(--purple-l);transform:scale(1.05);}
+
+.score-bar{background:var(--white);border:1px solid var(--rule);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.score-bar strong{color:var(--purple);font-family:'Fredoka',sans-serif;font-size:15px;}
+.reset-btn{margin-left:auto;background:none;border:1.5px solid var(--rule2);color:var(--soft);font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all .15s;}
+.reset-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-l);}
+
+/* SECRET WORD / TYPE-IN */
+.type-item{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.type-transcription{font-family:'Fredoka',sans-serif;font-size:24px;color:var(--purple);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.type-hint{font-size:13px;color:var(--soft);font-style:italic;margin-bottom:14px;}
+.type-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.type-input{flex:1;min-width:160px;border:2px solid var(--rule2);border-radius:10px;padding:11px 16px;font-family:'Fredoka',sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:var(--off);}
+.type-input:focus{outline:none;border-color:var(--purple);background:#fff;box-shadow:0 0 0 3px var(--purple-l);}
+.type-input.correct{border-color:var(--teal);background:var(--teal-l);}
+.type-input.wrong{border-color:var(--rose);background:var(--rose-l);}
+.check-btn{background:var(--purple);color:#fff;border:none;padding:11px 22px;border-radius:10px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,transform .15s;}
+.check-btn:hover{background:var(--deep);transform:translateY(-1px);}
+.check-btn:disabled{opacity:.5;cursor:default;transform:none;}
+.type-feedback{margin-top:10px;font-size:13px;font-weight:700;min-height:18px;}
+.type-feedback.ok{color:#0f766e;}
+.type-feedback.bad{color:#9f1239;}
+
+/* LISTEN & REPEAT WIDGET */
+.listen-repeat{margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule2);display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+.mini-btn{background:var(--white);border:1.5px solid var(--rule2);color:var(--purple);font-family:'Fredoka',sans-serif;font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.mini-btn:hover:not(:disabled){border-color:var(--purple);background:var(--purple-l);}
+.mini-btn:disabled{opacity:.5;cursor:default;}
+.mini-btn.mic-active{background:var(--rose-l);border-color:var(--rose);color:#9f1239;}
+.mic-feedback{font-size:12px;color:var(--soft);font-weight:600;flex-basis:100%;}
+
+/* BUILD THE WORD */
+.build-item{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.build-clue{font-family:'Fredoka',sans-serif;font-size:20px;color:var(--purple);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.build-slot{display:flex;gap:8px;margin-bottom:14px;min-height:46px;}
+.slot-box{width:42px;height:42px;border:2px dashed var(--rule2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;color:var(--purple);background:var(--off);}
+.slot-box.filled{border-style:solid;border-color:var(--purple-m);background:var(--purple-l);}
+.tile-row{display:flex;gap:8px;flex-wrap:wrap;}
+.tile{width:42px;height:42px;border-radius:8px;background:var(--white);border:2px solid var(--rule2);display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:18px;color:var(--ink);cursor:pointer;transition:all .15s;}
+.tile:hover{border-color:var(--purple);background:var(--purple-l);}
+.tile.used{visibility:hidden;}
+.build-status{margin-top:10px;font-size:13px;font-weight:700;min-height:18px;}
+.build-status.ok{color:#0f766e;}
+.build-status.bad{color:#9f1239;}
+.build-undo{background:none;border:1.5px solid var(--rule2);color:var(--soft);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;margin-top:8px;}
+
+/* 3-SECOND CHALLENGE */
+.speed-card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:32px 28px;text-align:center;box-shadow:var(--shadow);}
+.speed-item{font-family:'Fredoka',sans-serif;font-size:46px;font-weight:600;color:var(--purple);margin-bottom:18px;}
+.speed-bar-track{height:8px;background:var(--rule);border-radius:20px;overflow:hidden;margin-bottom:20px;}
+.speed-bar-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--purple));width:100%;transition:width .1s linear;}
+.speed-row{display:flex;gap:10px;justify-content:center;margin-bottom:14px;}
+.speed-input{width:160px;border:2px solid var(--rule2);border-radius:10px;padding:11px 14px;font-family:'Fredoka',sans-serif;font-size:16px;text-align:center;text-transform:lowercase;}
+.speed-input:focus{outline:none;border-color:var(--purple);}
+.speed-feedback{font-size:14px;font-weight:700;min-height:22px;margin-bottom:10px;}
+.speed-feedback.ok{color:#0f766e;}
+.speed-feedback.bad{color:#9f1239;}
+.speed-progress{font-size:12px;color:var(--soft);margin-bottom:6px;}
+.speed-start-btn{background:var(--orange);color:#fff;border:none;padding:13px 28px;border-radius:12px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;cursor:pointer;}
+.speed-start-btn:hover{background:#ea580c;}
+.speed-final{font-family:'Fredoka',sans-serif;font-size:20px;color:var(--purple);}
+
+/* SECRET DOOR */
+.door-card{background:linear-gradient(160deg,#2b2245,#4c1d95);border-radius:18px;padding:36px 28px;text-align:center;color:#fff;box-shadow:var(--shadow);}
+.door-title{font-family:'Fredoka',sans-serif;font-size:22px;font-weight:600;margin-bottom:6px;}
+.door-sub{font-size:13px;color:#d8c9fb;margin-bottom:4px;}
+.door-sub-ru{font-size:12px;color:#c4b0f0;margin-bottom:22px;font-style:italic;}
+.door-locks{display:flex;justify-content:center;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.lock{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;}
+.lock.open{background:var(--teal);border-color:var(--teal);}
+.door-clue{font-family:'Fredoka',sans-serif;font-size:26px;letter-spacing:3px;color:#fff;margin-bottom:16px;min-height:32px;display:flex;align-items:center;justify-content:center;gap:12px;}
+.door-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.door-input{width:180px;border:2px solid rgba(255,255,255,.3);border-radius:10px;padding:12px 16px;font-family:'Fredoka',sans-serif;font-size:16px;text-align:center;background:rgba(255,255,255,.08);color:#fff;text-transform:uppercase;letter-spacing:1px;}
+.door-input::placeholder{color:rgba(255,255,255,.4);}
+.door-input:focus{outline:none;border-color:var(--gold);}
+.door-check{background:var(--gold);color:#2b2245;border:none;padding:12px 22px;border-radius:10px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.door-feedback{margin-top:12px;font-size:13px;font-weight:700;min-height:18px;color:#fca5a5;}
+.door-win{display:none;margin-top:10px;}
+.door-win.show{display:block;}
+.door-win h3{font-family:'Fredoka',sans-serif;font-size:24px;color:var(--gold);margin-top:8px;}
+.door-win .ru{color:#d8c9fb;}
+.door-mini-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-family:'Fredoka',sans-serif;font-weight:600;font-size:12px;padding:6px 13px;border-radius:20px;cursor:pointer;margin-top:8px;}
+.door-mini-btn:hover:not(:disabled){background:rgba(255,255,255,.22);}
+.door-mic-fb{font-size:12px;color:#d8c9fb;font-weight:600;margin-top:6px;}
+
+/* SUMMARY */
+.summary-card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:26px 28px;box-shadow:var(--shadow);}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:18px 0 6px;}
+.sum-stat{background:var(--purple-l);border:1px solid var(--purple-m);border-radius:12px;padding:14px 16px;text-align:center;}
+.sum-val{font-family:'Fredoka',sans-serif;font-size:22px;font-weight:600;color:var(--deep);}
+.sum-lbl{font-size:10.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+
+/* SAVE FAB + TOAST */
+.save-fab{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--purple);color:#fff;border:none;padding:15px 24px;border-radius:30px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:9px;transition:all .15s;}
+.save-fab:hover{background:var(--deep);transform:translateY(-2px);}
+.toast{position:fixed;bottom:90px;right:24px;z-index:999;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:280px;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+.confetti{position:fixed;top:-30px;font-size:22px;pointer-events:none;z-index:1000;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:.2;}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.shake{animation:shake .3s;}
+
+footer{text-align:center;padding:30px 20px;font-size:11px;color:var(--soft);letter-spacing:.5px;text-transform:uppercase;}
+
+@media(max-width:600px){
+  .hero{padding:40px 18px;}
+  main{padding:32px 14px 120px;}
+  .mc-prompt{flex-wrap:wrap;}
+  .save-fab{right:14px;bottom:14px;padding:13px 18px;font-size:12.5px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">🕵️ Sound Detective Quest</div>
+    <h1>Letters &amp; Sounds<br>Adventure</h1>
+    <p>Listen with your eyes, crack the code, and build real words. Nine letters are waiting for you today!</p>
+    <p class="ru-line">Слушай, разгадывай звуки и собирай настоящие слова! Сегодня тебя ждут девять букв.</p>
+    <div class="hero-letters" id="heroLetters"></div>
+  </div>
+</div>
+
+<main>
+
+<!-- PART 1: LETTER -> SOUND -->
+<div class="sec-hd">
+  <div class="sec-num">1</div>
+  <div><h2>Which sound does the letter make?</h2><div class="sub">Look at the letter and pick its sound</div><div class="sub-ru">Посмотри на букву и выбери, какой звук она даёт</div></div>
+</div>
+<div class="intro-card">👀 Look at the big letter. Tap the sound it makes. Tap 🔊 to hear a hint.
+  <div class="intro-ru">Посмотри на большую букву и нажми на нужный звук. Кнопка 🔊 поможет услышать подсказку.</div>
+</div>
+<div id="p1List"></div>
+<div class="score-bar">Score: <strong id="p1Score">0 / 9</strong><button class="reset-btn" onclick="buildP1()">↺ Try again</button></div>
+
+<!-- PART 2: SOUND -> LETTER -->
+<div class="sec-hd">
+  <div class="sec-num">2</div>
+  <div><h2>Which letter makes this sound?</h2><div class="sub">Now do it backwards!</div><div class="sub-ru">А теперь наоборот — от звука к букве!</div></div>
+</div>
+<div class="intro-card">👂 Tap 🔊 to hear the sound, then choose the letter.
+  <div class="intro-ru">Нажми 🔊, чтобы услышать звук, а потом выбери правильную букву.</div>
+</div>
+<div id="p2List"></div>
+<div class="score-bar">Score: <strong id="p2Score">0 / 9</strong><button class="reset-btn" onclick="buildP2()">↺ Try again</button></div>
+
+<!-- PART 3: SECRET WORD -->
+<div class="sec-hd">
+  <div class="sec-num">3</div>
+  <div><h2>Secret Word</h2><div class="sub">Read the sounds, use the clue, type the word</div><div class="sub-ru">Прочитай звуки, посмотри на подсказку и напиши слово</div></div>
+</div>
+<div class="intro-card">🔐 Sound it out, then check the clue if you're stuck!
+  <div class="intro-ru">Произнеси звуки по порядку. Если сложно — почитай подсказку!</div>
+</div>
+<div class="note-card">🎤 After each correct answer you can listen to the word and repeat it out loud — best in Google Chrome, with microphone access allowed.
+  <div class="ru" style="margin-top:4px;display:block;">После каждого правильного ответа можно послушать слово 🔊 и повторить его вслух 🎤 — лучше всего работает в Chrome с разрешённым микрофоном.</div>
+</div>
+<div id="p3List"></div>
+<div class="score-bar">Solved: <strong id="p3Score">0 / 6</strong><button class="reset-btn" onclick="buildP3()">↺ Try again</button></div>
+
+<!-- PART 4: BUILD THE WORD -->
+<div class="sec-hd">
+  <div class="sec-num">4</div>
+  <div><h2>Build the Word</h2><div class="sub">Tap the letter tiles in the right order</div><div class="sub-ru">Нажимай на буквы по порядку, чтобы собрать слово</div></div>
+</div>
+<div id="p4List"></div>
+<div class="score-bar">Built: <strong id="p4Score">0 / 6</strong><button class="reset-btn" onclick="buildP4()">↺ Try again</button></div>
+
+<!-- PART 5: LETTER DETECTIVE -->
+<div class="sec-hd">
+  <div class="sec-num">5</div>
+  <div><h2>Letter Detective</h2><div class="sub">Find the word with the right sound</div><div class="sub-ru">Найди слово с нужным звуком</div></div>
+</div>
+<div class="intro-card">🔍 Not sure how a word sounds? Tap 🔊 next to it.
+  <div class="intro-ru">Не уверен(а), как звучит слово? Нажми 🔊 рядом с ним.</div>
+</div>
+<div id="p5List"></div>
+<div class="score-bar">Score: <strong id="p5Score">0 / 6</strong><button class="reset-btn" onclick="buildP5()">↺ Try again</button></div>
+
+<!-- PART 6: 3-SECOND CHALLENGE -->
+<div class="sec-hd">
+  <div class="sec-num">6</div>
+  <div><h2>3-Second Challenge</h2><div class="sub">Answer fast, before the bar runs out!</div><div class="sub-ru">Отвечай быстро, пока полоска не закончилась!</div></div>
+</div>
+<div class="speed-card" id="speedCard">
+  <div id="speedContent"></div>
+</div>
+
+<!-- PART 7: SECRET DOOR -->
+<div class="sec-hd">
+  <div class="sec-num">7</div>
+  <div><h2>The Secret Door</h2><div class="sub">Solve all 5 words to open the door!</div><div class="sub-ru">Реши все 5 слов, чтобы открыть дверь!</div></div>
+</div>
+<div class="door-card">
+  <div class="door-title">🚪 THE SECRET DOOR</div>
+  <div class="door-sub">Solve 5 words to unlock it</div>
+  <div class="door-sub-ru">Реши 5 слов, чтобы её открыть</div>
+  <div class="door-locks" id="doorLocks"></div>
+  <div id="doorGame"></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="sec-hd">
+  <div class="sec-num">★</div>
+  <div><h2>My Results</h2><div class="sub">Great job, detective!</div><div class="sub-ru">Отличная работа, детектив!</div></div>
+</div>
+<div class="summary-card">
+  <div>Here's how you did today. Ask a grown-up to help you save your results!
+    <div class="ru" style="display:block;margin-top:4px;">Вот твои результаты за сегодня. Попроси взрослого помочь сохранить их в файл!</div>
+  </div>
+  <div class="summary-grid" id="summaryGrid"></div>
+</div>
+
+</main>
+
+<footer>Sound Detective · Letters &amp; Sounds Quest · C D G H P R S T W</footer>
+
+<button class="save-fab" onclick="saveResults()" title="Сохранить результаты">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M5 20h14v-2H5v2zm7-18-5.5 5.5 1.41 1.41L11 5.83V16h2V5.83l3.09 3.08L17.5 7.5 12 2z" transform="rotate(180 12 12)"/></svg>
+  Save my answers
+</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ SHARED DATA ═══════════ */
+const LETTERS = ['C','D','G','H','P','R','S','T','W'];
+const LETTER_SOUND = { C:'/k/', D:'/d/', G:'/g/', H:'/h/', P:'/p/', R:'/r/', S:'/s/', T:'/t/', W:'/w/' };
+/* Approximate spoken renderings of isolated consonant sounds for TTS (synthetic phonics style) */
+const SOUND_TTS = { C:'kuh', D:'duh', G:'guh', H:'huh', P:'puh', R:'ruh', S:'sss', T:'tuh', W:'wuh' };
+
+document.getElementById('heroLetters').innerHTML = LETTERS.map(l => `<div class="hero-letter">${l}</div>`).join('');
+
+function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
+function pickDistractors(correct, pool, n){
+  const others = pool.filter(x => x !== correct);
+  return shuffle(others).slice(0,n);
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function confettiBurst(n=24){
+  const emojis = ['🎉','⭐','✨','🎊'];
+  for(let i=0;i<n;i++){
+    const s = document.createElement('span');
+    s.className = 'confetti';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.animationDuration = (2 + Math.random()*1.5) + 's';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 3600);
+  }
+}
+
+/* ═══════════ AUDIO: TEXT-TO-SPEECH ═══════════ */
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.05;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ═══════════ AUDIO: SPEECH RECOGNITION ("Repeat after me") ═══════════ */
+function supportsSTT(){ return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+function listenAndCheck(targetWord, onDone){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ onDone({ok:false, reason:'unsupported'}); return null; }
+  try{
+    const rec = new SR();
+    rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 3;
+    let done = false;
+    rec.onresult = (e)=>{
+      done = true;
+      const alts = Array.from(e.results[0]).map(r => r.transcript.toLowerCase().replace(/[^a-z]/g,''));
+      const match = alts.includes(targetWord.toLowerCase());
+      onDone({ ok:true, match, heard: alts[0] || '' });
+    };
+    rec.onerror = ()=>{ if(!done){ done = true; onDone({ ok:false, reason:'error' }); } };
+    rec.onend = ()=>{ if(!done){ done = true; onDone({ ok:false, reason:'noresult' }); } };
+    rec.start();
+    return rec;
+  }catch(err){ onDone({ ok:false, reason:'exception' }); return null; }
+}
+function wireMic(btn, targetWord, fbEl){
+  if(!supportsSTT()){
+    btn.disabled = true;
+    fbEl.innerHTML = 'Voice input isn\'t supported here. <span class="ru">(Голосовой ввод здесь недоступен — попробуй Chrome)</span>';
+    return;
+  }
+  btn.addEventListener('click', ()=>{
+    btn.disabled = true; btn.classList.add('mic-active');
+    fbEl.textContent = '🎧 Listening... say the word! / Говори слово!';
+    listenAndCheck(targetWord, (res)=>{
+      btn.disabled = false; btn.classList.remove('mic-active');
+      if(!res.ok){
+        fbEl.innerHTML = 'Voice practice unavailable right now. <span class="ru">(Голос сейчас недоступен — попробуй ещё раз или через Chrome)</span>';
+      } else if(res.match){
+        fbEl.innerHTML = '🎉 Great pronunciation! <span class="ru">(Отлично, ты сказал(а) правильно!)</span>';
+      } else {
+        fbEl.innerHTML = `Almost! I heard "${res.heard || '...'}" — try again. <span class="ru">(Почти! Я услышал(а) "${res.heard || '...'}", попробуй ещё раз)</span>`;
+      }
+    });
+  });
+}
+function listenRepeatHTML(idBase, spokenWord){
+  return `
+    <div class="listen-repeat">
+      <button class="mini-btn" onclick="speak('${spokenWord}')">🔊 Listen</button>
+      <button class="mini-btn" id="mic-${idBase}">🎤 Repeat / Повтори</button>
+      <span class="mic-feedback" id="micfb-${idBase}"></span>
+    </div>`;
+}
+
+/* score tracker for save-report */
+const SCORES = {};
+
+/* ═══════════ PART 1: LETTER -> SOUND ═══════════ */
+let p1Score = 0;
+function buildP1(){
+  const wrap = document.getElementById('p1List'); wrap.innerHTML=''; p1Score=0; updateP1();
+  const allSounds = LETTERS.map(l=>LETTER_SOUND[l]);
+  shuffle(LETTERS).forEach(letter=>{
+    const correct = LETTER_SOUND[letter];
+    const opts = shuffle([correct, ...pickDistractors(correct, allSounds, 2)]);
+    const div = document.createElement('div'); div.className='mc-item';
+    div.innerHTML = `<div class="mc-prompt"><div class="mc-big">${letter}</div><button class="speaker-btn" onclick="speak('${SOUND_TTS[letter]}')" title="Listen / Слушай">🔊</button><div class="mc-text">What sound does this letter make? <span class="ru" style="display:block;">Какой звук у этой буквы?</span></div></div><div class="mc-opts"></div>`;
+    const optsWrap = div.querySelector('.mc-opts');
+    opts.forEach(o=>{
+      const btn = document.createElement('div'); btn.className='mc-opt'; btn.textContent=o;
+      btn.addEventListener('click', ()=>{
+        if(optsWrap.dataset.locked) return; optsWrap.dataset.locked='1';
+        optsWrap.querySelectorAll('.mc-opt').forEach(el=>el.classList.add('disabled'));
+        if(o===correct){ btn.classList.add('correct'); p1Score++; }
+        else { btn.classList.add('wrong'); [...optsWrap.children].forEach(el=>{ if(el.textContent===correct) el.classList.add('correct'); }); }
+        updateP1();
+      });
+      optsWrap.appendChild(btn);
+    });
+    wrap.appendChild(div);
+  });
+}
+function updateP1(){ document.getElementById('p1Score').textContent = `${p1Score} / ${LETTERS.length}`; SCORES['Part 1 — Letter → Sound'] = `${p1Score} / ${LETTERS.length}`; }
+
+/* ═══════════ PART 2: SOUND -> LETTER ═══════════ */
+let p2Score = 0;
+function buildP2(){
+  const wrap = document.getElementById('p2List'); wrap.innerHTML=''; p2Score=0; updateP2();
+  shuffle(LETTERS).forEach(letter=>{
+    const correct = letter;
+    const opts = shuffle([correct, ...pickDistractors(correct, LETTERS, 2)]);
+    const div = document.createElement('div'); div.className='mc-item';
+    div.innerHTML = `<div class="mc-prompt"><div class="mc-big" style="font-size:22px;">${LETTER_SOUND[letter]}</div><button class="speaker-btn" onclick="speak('${SOUND_TTS[letter]}')" title="Listen / Слушай">🔊</button><div class="mc-text">Which letter makes this sound? <span class="ru" style="display:block;">Какая буква даёт этот звук?</span></div></div><div class="mc-opts"></div>`;
+    const optsWrap = div.querySelector('.mc-opts');
+    opts.forEach(o=>{
+      const btn = document.createElement('div'); btn.className='mc-opt'; btn.textContent=o;
+      btn.addEventListener('click', ()=>{
+        if(optsWrap.dataset.locked) return; optsWrap.dataset.locked='1';
+        optsWrap.querySelectorAll('.mc-opt').forEach(el=>el.classList.add('disabled'));
+        if(o===correct){ btn.classList.add('correct'); p2Score++; }
+        else { btn.classList.add('wrong'); [...optsWrap.children].forEach(el=>{ if(el.textContent===correct) el.classList.add('correct'); }); }
+        updateP2();
+      });
+      optsWrap.appendChild(btn);
+    });
+    wrap.appendChild(div);
+  });
+}
+function updateP2(){ document.getElementById('p2Score').textContent = `${p2Score} / ${LETTERS.length}`; SCORES['Part 2 — Sound → Letter'] = `${p2Score} / ${LETTERS.length}`; }
+
+/* ═══════════ PART 3: SECRET WORD ═══════════ */
+const SECRET_WORDS = [
+  { trans:'/r/ /e/ /d/', hint:"It's a colour. — Это цвет.", answer:'RED' },
+  { trans:'/h/ /ɒ/ /t/', hint:'Opposite of cold. — Противоположность слову "холодный".', answer:'HOT' },
+  { trans:'/p/ /e/ /n/', hint:'You write with it. — Этим ты пишешь.', answer:'PEN' },
+  { trans:'/d/ /ɒ/ /g/', hint:'An animal that barks. — Животное, которое лает.', answer:'DOG' },
+  { trans:'/k/ /æ/ /t/', hint:'A pet that says meow. — Питомец, который мяукает.', answer:'CAT' },
+  { trans:'/s/ /ʌ/ /n/', hint:'It shines in the sky. — Светит на небе.', answer:'SUN' }
+];
+let p3Score = 0;
+function buildP3(){
+  const wrap = document.getElementById('p3List'); wrap.innerHTML=''; p3Score=0; updateP3();
+  SECRET_WORDS.forEach((item,i)=>{
+    const div = document.createElement('div'); div.className='type-item';
+    div.innerHTML = `
+      <div class="type-transcription">${item.trans}</div>
+      <div class="type-hint">💡 ${item.hint}</div>
+      <div class="type-row">
+        <input type="text" class="type-input" id="sw-${i}" placeholder="Type the word...">
+        <button class="check-btn" id="swbtn-${i}">Check</button>
+      </div>
+      <div class="type-feedback" id="swfb-${i}"></div>
+      <div id="lr-${i}"></div>
+    `;
+    wrap.appendChild(div);
+    const input = div.querySelector('#sw-'+i), btn = div.querySelector('#swbtn-'+i), fb = div.querySelector('#swfb-'+i);
+    const check = ()=>{
+      if(input.disabled) return;
+      const val = input.value.trim().toUpperCase();
+      if(val === item.answer){
+        input.classList.add('correct'); input.disabled=true; btn.disabled=true;
+        fb.innerHTML = '✓ Correct! Well done. <span class="ru">(Правильно! Молодец!)</span>';
+        fb.className='type-feedback ok';
+        p3Score++; updateP3();
+        document.getElementById('lr-'+i).innerHTML = listenRepeatHTML('sw-'+i, item.answer.toLowerCase());
+        wireMic(document.getElementById('mic-sw-'+i), item.answer, document.getElementById('micfb-sw-'+i));
+      } else {
+        input.classList.add('wrong'); div.classList.add('shake');
+        fb.innerHTML = 'Not quite — sound it out again! <span class="ru">(Почти! Попробуй ещё раз)</span>';
+        fb.className='type-feedback bad';
+        setTimeout(()=>{ input.classList.remove('wrong'); div.classList.remove('shake'); }, 400);
+      }
+    };
+    btn.addEventListener('click', check);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') check(); });
+  });
+}
+function updateP3(){ document.getElementById('p3Score').textContent = `${p3Score} / ${SECRET_WORDS.length}`; SCORES['Part 3 — Secret Word'] = `${p3Score} / ${SECRET_WORDS.length}`; }
+
+/* ═══════════ PART 4: BUILD THE WORD ═══════════ */
+const BUILD_WORDS = [
+  { clue:'/h/ /æ/ /t/', word:'HAT' },
+  { clue:'/d/ /ɒ/ /g/', word:'DOG' },
+  { clue:'/r/ /e/ /d/', word:'RED' },
+  { clue:'/p/ /ɪ/ /g/', word:'PIG' },
+  { clue:'/s/ /ʌ/ /n/', word:'SUN' },
+  { clue:'/k/ /æ/ /t/', word:'CAT' }
+];
+let p4Score = 0;
+function buildP4(){
+  const wrap = document.getElementById('p4List'); wrap.innerHTML=''; p4Score=0; updateP4();
+  BUILD_WORDS.forEach((item,i)=>{
+    const letters = item.word.split('');
+    const scrambled = shuffle(letters.map((l,idx)=>({l, idx})));
+    const div = document.createElement('div'); div.className='build-item';
+    div.innerHTML = `
+      <div class="build-clue">${item.clue}<button class="speaker-btn" style="width:32px;height:32px;font-size:14px;" onclick="speak('${item.word.toLowerCase()}')" title="Listen / Слушай">🔊</button></div>
+      <div class="build-slot" id="slot-${i}"></div>
+      <div class="tile-row" id="tiles-${i}"></div>
+      <div class="build-status" id="bstatus-${i}"></div>
+      <button class="build-undo" id="undo-${i}">↺ Undo / Заново</button>
+      <div id="lr4-${i}"></div>
+    `;
+    wrap.appendChild(div);
+    const slotEl = div.querySelector('#slot-'+i);
+    const tilesEl = div.querySelector('#tiles-'+i);
+    const statusEl = div.querySelector('#bstatus-'+i);
+    let built = [];
+    let solved = false;
+    for(let s=0;s<letters.length;s++){ const box=document.createElement('div'); box.className='slot-box'; box.id=`slotbox-${i}-${s}`; slotEl.appendChild(box); }
+    scrambled.forEach((t,ti)=>{
+      const tile = document.createElement('div'); tile.className='tile'; tile.textContent=t.l; tile.id=`tile-${i}-${ti}`;
+      tile.addEventListener('click', ()=>{
+        if(solved || tile.classList.contains('used')) return;
+        built.push({letter:t.l, tileId:tile.id});
+        document.getElementById(`slotbox-${i}-${built.length-1}`).textContent = t.l;
+        document.getElementById(`slotbox-${i}-${built.length-1}`).classList.add('filled');
+        tile.classList.add('used');
+        if(built.length === letters.length){
+          const attempt = built.map(b=>b.letter).join('');
+          if(attempt === item.word){
+            statusEl.innerHTML = '✓ Great job! You built the word. <span class="ru">(Отлично! Ты собрал(а) слово!)</span>';
+            statusEl.className='build-status ok';
+            solved = true; p4Score++; updateP4();
+            document.getElementById('lr4-'+i).innerHTML = listenRepeatHTML('bw-'+i, item.word.toLowerCase());
+            wireMic(document.getElementById('mic-bw-'+i), item.word, document.getElementById('micfb-bw-'+i));
+          } else {
+            statusEl.innerHTML = 'Not quite — tap Undo and try again. <span class="ru">(Не совсем — нажми "Заново")</span>';
+            statusEl.className='build-status bad';
+            div.classList.add('shake'); setTimeout(()=>div.classList.remove('shake'),400);
+          }
+        }
+      });
+      tilesEl.appendChild(tile);
+    });
+    div.querySelector('#undo-'+i).addEventListener('click', ()=>{
+      if(solved) return;
+      built.forEach((b)=>{ document.getElementById(b.tileId).classList.remove('used'); });
+      built = [];
+      for(let s=0;s<letters.length;s++){ const box=document.getElementById(`slotbox-${i}-${s}`); box.textContent=''; box.classList.remove('filled'); }
+      statusEl.textContent=''; statusEl.className='build-status';
+    });
+  });
+}
+function updateP4(){ document.getElementById('p4Score').textContent = `${p4Score} / ${BUILD_WORDS.length}`; SCORES['Part 4 — Build the Word'] = `${p4Score} / ${BUILD_WORDS.length}`; }
+
+/* ═══════════ PART 5: LETTER DETECTIVE ═══════════ */
+const DETECTIVE_Q = [
+  { text: 'Which word has the /w/ sound?', ru: 'В каком слове есть звук /w/?', opts:['dog','window','pig'], correct:1 },
+  { text: 'Which word has the /s/ sound?', ru: 'В каком слове есть звук /s/?', opts:['sun','dog','hat'], correct:0 },
+  { text: 'Which word has the /h/ sound?', ru: 'В каком слове есть звук /h/?', opts:['pig','hot','red'], correct:1 },
+  { text: 'Which word has the /r/ sound?', ru: 'В каком слове есть звук /r/?', opts:['red','sun','pen'], correct:0 },
+  { text: 'Which word has the /d/ sound?', ru: 'В каком слове есть звук /d/?', opts:['cat','dog','pig'], correct:1 },
+  { text: 'Which word has the /t/ sound?', ru: 'В каком слове есть звук /t/?', opts:['sun','pig','hat'], correct:2 }
+];
+let p5Score = 0;
+function buildP5(){
+  const wrap = document.getElementById('p5List'); wrap.innerHTML=''; p5Score=0; updateP5();
+  DETECTIVE_Q.forEach((item)=>{
+    const optsShuffled = shuffle(item.opts.map((o,i)=>({text:o, correct:i===item.correct})));
+    const div = document.createElement('div'); div.className='mc-item';
+    div.innerHTML = `<div class="mc-prompt"><div class="mc-big" style="font-size:26px;">🔍</div><div class="mc-text">${item.text}<span class="ru" style="display:block;">${item.ru}</span></div></div><div class="mc-opts"></div>`;
+    const optsWrap = div.querySelector('.mc-opts');
+    optsShuffled.forEach(o=>{
+      const btn = document.createElement('div'); btn.className='mc-opt';
+      btn.innerHTML = `<span>${o.text}</span><span class="opt-sound-btn" onclick="event.stopPropagation();speak('${o.text}')">🔊</span>`;
+      btn.addEventListener('click', ()=>{
+        if(optsWrap.dataset.locked) return; optsWrap.dataset.locked='1';
+        optsWrap.querySelectorAll('.mc-opt').forEach(el=>el.classList.add('disabled'));
+        if(o.correct){ btn.classList.add('correct'); p5Score++; }
+        else { btn.classList.add('wrong'); [...optsWrap.children].forEach(el=>{ if(el.textContent.trim().startsWith(item.opts[item.correct])) el.classList.add('correct'); }); }
+        updateP5();
+      });
+      optsWrap.appendChild(btn);
+    });
+    wrap.appendChild(div);
+  });
+}
+function updateP5(){ document.getElementById('p5Score').textContent = `${p5Score} / ${DETECTIVE_Q.length}`; SCORES['Part 5 — Letter Detective'] = `${p5Score} / ${DETECTIVE_Q.length}`; }
+
+/* ═══════════ PART 6: 3-SECOND CHALLENGE ═══════════ */
+const SPEED_ROUNDS = LETTERS.map(l => ({ prompt:l, answer:LETTER_SOUND[l].replace(/\//g,''), display:l, mode:'letter', tts:SOUND_TTS[l] }))
+  .concat(LETTERS.map(l => ({ prompt:LETTER_SOUND[l], answer:l.toLowerCase(), display:LETTER_SOUND[l], mode:'sound', tts:l }))); 
+let speedIdx = 0, speedScore = 0, speedTimer = null, speedRoundsShuffled = [];
+function buildSpeedIntro(){
+  const content = document.getElementById('speedContent');
+  content.innerHTML = `
+    <div style="font-size:14px;color:var(--soft);margin-bottom:6px;">10 rounds. Type the letter or the sound before the bar runs out. Ready?</div>
+    <div style="font-size:12.5px;color:var(--soft);margin-bottom:18px;font-style:italic;">10 раундов. Напиши букву или звук, пока полоска не закончилась. Готов(а)?</div>
+    <button class="speed-start-btn" onclick="startSpeed()">▶ Start Challenge</button>
+  `;
+}
+function startSpeed(){
+  speedRoundsShuffled = shuffle(SPEED_ROUNDS).slice(0,10);
+  speedIdx = 0; speedScore = 0;
+  runSpeedRound();
+}
+function runSpeedRound(){
+  clearInterval(speedTimer);
+  const content = document.getElementById('speedContent');
+  if(speedIdx >= speedRoundsShuffled.length){
+    const good = speedScore >= speedRoundsShuffled.length*0.7;
+    content.innerHTML = `<div class="speed-final">⭐ Score: ${speedScore} / ${speedRoundsShuffled.length}</div>
+      <div style="font-size:13px;color:var(--soft);margin:10px 0 4px;">${good ? "Great! You know these sounds really well." : "Nice try! Let's practise those tricky ones again."}</div>
+      <div style="font-size:12px;color:var(--soft);margin-bottom:18px;font-style:italic;">${good ? "Отлично! Ты хорошо знаешь эти звуки." : "Неплохо! Давай ещё потренируем сложные звуки."}</div>
+      <button class="speed-start-btn" onclick="startSpeed()">↺ Play again</button>`;
+    SCORES['Part 6 — 3-Second Challenge'] = `${speedScore} / ${speedRoundsShuffled.length}`;
+    return;
+  }
+  const round = speedRoundsShuffled[speedIdx];
+  content.innerHTML = `
+    <div class="speed-progress">Round ${speedIdx+1} / ${speedRoundsShuffled.length} · Score: ${speedScore}</div>
+    <div class="speed-item">${round.display}</div>
+    <div class="speed-bar-track"><div class="speed-bar-fill" id="speedBarFill"></div></div>
+    <div class="speed-row"><input type="text" class="speed-input" id="speedInput" placeholder="${round.mode==='letter' ? 'sound' : 'letter'}" autocomplete="off"></div>
+    <div class="speed-feedback" id="speedFeedback"></div>
+  `;
+  const input = document.getElementById('speedInput');
+  input.focus();
+  const timeLeft = 3000;
+  const fill = document.getElementById('speedBarFill');
+  const startTime = Date.now();
+  let answered = false;
+  speedTimer = setInterval(()=>{
+    const elapsed = Date.now() - startTime;
+    const pct = Math.max(0, 100 - (elapsed/timeLeft*100));
+    fill.style.width = pct + '%';
+    if(elapsed >= timeLeft && !answered){
+      answered = true; clearInterval(speedTimer);
+      document.getElementById('speedFeedback').innerHTML = `⏱ Time's up! It was "${round.answer}". <span class="ru">(Время вышло! Ответ: "${round.answer}")</span>`;
+      document.getElementById('speedFeedback').className = 'speed-feedback bad';
+      input.disabled = true;
+      speak(round.tts);
+      speedIdx++;
+      setTimeout(runSpeedRound, 1400);
+    }
+  }, 30);
+  function submit(){
+    if(answered) return;
+    const val = input.value.trim().toLowerCase().replace(/\//g,'');
+    if(val === round.answer){
+      answered = true; clearInterval(speedTimer);
+      document.getElementById('speedFeedback').innerHTML = '✓ Correct! <span class="ru">(Верно!)</span>';
+      document.getElementById('speedFeedback').className = 'speed-feedback ok';
+      input.disabled = true; speedScore++; speedIdx++;
+      speak(round.tts);
+      setTimeout(runSpeedRound, 900);
+    }
+  }
+  input.addEventListener('input', submit);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+}
+
+/* ═══════════ PART 7: SECRET DOOR ═══════════ */
+const DOOR_WORDS = [
+  { clue:'/p/ /ɪ/ /g/', answer:'PIG' },
+  { clue:'/h/ /æ/ /t/', answer:'HAT' },
+  { clue:'/r/ /e/ /d/', answer:'RED' },
+  { clue:'/s/ /ʌ/ /n/', answer:'SUN' },
+  { clue:'/d/ /ɒ/ /g/', answer:'DOG' }
+];
+let doorIdx = 0;
+function buildDoor(){
+  doorIdx = 0;
+  const locks = document.getElementById('doorLocks');
+  locks.innerHTML = DOOR_WORDS.map((_,i)=>`<div class="lock" id="lock-${i}">🔒</div>`).join('');
+  renderDoorRound();
+}
+function renderDoorRound(){
+  const game = document.getElementById('doorGame');
+  if(doorIdx >= DOOR_WORDS.length){
+    game.innerHTML = `<div class="door-win show"><h3>🎉 THE DOOR IS OPEN!</h3>
+      <div style="font-size:13px;color:#d8c9fb;margin-top:6px;">You solved all 5 words. Amazing detective work!</div>
+      <div class="ru" style="display:block;margin-top:2px;">Ты решил(а) все 5 слов! Отличная работа, детектив!</div>
+      <div id="doorFinalLR"></div>
+    </div>`;
+    confettiBurst(30);
+    SCORES['Part 7 — Secret Door'] = `${DOOR_WORDS.length} / ${DOOR_WORDS.length} (door opened)`;
+    return;
+  }
+  const item = DOOR_WORDS[doorIdx];
+  game.innerHTML = `
+    <div class="door-clue">${item.clue}<button class="speaker-btn" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff;width:32px;height:32px;font-size:14px;" onclick="speak('${item.answer.toLowerCase()}')" title="Listen">🔊</button></div>
+    <div class="door-row">
+      <input type="text" class="door-input" id="doorInput" placeholder="TYPE THE WORD">
+      <button class="door-check" id="doorCheck">Unlock 🔓</button>
+    </div>
+    <div class="door-feedback" id="doorFeedback"></div>
+  `;
+  const input = document.getElementById('doorInput'), btn = document.getElementById('doorCheck'), fb = document.getElementById('doorFeedback');
+  const check = ()=>{
+    const val = input.value.trim().toUpperCase();
+    if(val === item.answer){
+      document.getElementById('lock-'+doorIdx).classList.add('open');
+      document.getElementById('lock-'+doorIdx).textContent = '🔓';
+      doorIdx++;
+      renderDoorRound();
+    } else {
+      fb.innerHTML = 'Not quite — sound it out and try again. <span class="ru">(Почти! Попробуй ещё раз)</span>';
+      input.classList.add('shake'); setTimeout(()=>input.classList.remove('shake'),400);
+    }
+  };
+  btn.addEventListener('click', check);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') check(); });
+  input.focus();
+}
+
+/* ═══════════ SUMMARY ═══════════ */
+function buildSummary(){
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = `
+    <div class="sum-stat"><div class="sum-val">${p1Score}/${LETTERS.length}</div><div class="sum-lbl">Letter → Sound</div></div>
+    <div class="sum-stat"><div class="sum-val">${p2Score}/${LETTERS.length}</div><div class="sum-lbl">Sound → Letter</div></div>
+    <div class="sum-stat"><div class="sum-val">${p3Score}/${SECRET_WORDS.length}</div><div class="sum-lbl">Secret Word</div></div>
+    <div class="sum-stat"><div class="sum-val">${p4Score}/${BUILD_WORDS.length}</div><div class="sum-lbl">Build the Word</div></div>
+    <div class="sum-stat"><div class="sum-val">${p5Score}/${DETECTIVE_Q.length}</div><div class="sum-lbl">Letter Detective</div></div>
+  `;
+}
+setInterval(buildSummary, 1000);
+
+/* ═══════════ SAVE RESULTS ═══════════ */
+function saveResults(){
+  let out = 'Sound Detective — Letters & Sounds Quest\n';
+  out += 'Saved: ' + new Date().toLocaleString() + '\n';
+  out += '='.repeat(50) + '\n\n';
+  out += `Part 1 — Letter → Sound: ${p1Score} / ${LETTERS.length}\n`;
+  out += `Part 2 — Sound → Letter: ${p2Score} / ${LETTERS.length}\n`;
+  out += `Part 3 — Secret Word: ${p3Score} / ${SECRET_WORDS.length}\n`;
+  out += `Part 4 — Build the Word: ${p4Score} / ${BUILD_WORDS.length}\n`;
+  out += `Part 5 — Letter Detective: ${p5Score} / ${DETECTIVE_Q.length}\n`;
+  out += `Part 6 — 3-Second Challenge: ${SCORES['Part 6 — 3-Second Challenge'] || 'not completed yet'}\n`;
+  out += `Part 7 — Secret Door: ${SCORES['Part 7 — Secret Door'] || 'not completed yet'}\n`;
+  const blob = new Blob([out], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Sound_Detective_results.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Results saved to a file ✓ (Результаты сохранены)');
+}
+
+/* ═══════════ INIT ═══════════ */
+buildP1(); buildP2(); buildP3(); buildP4(); buildP5(); buildSpeedIntro(); buildDoor(); buildSummary();
+</script>
+</body>
+</html>
