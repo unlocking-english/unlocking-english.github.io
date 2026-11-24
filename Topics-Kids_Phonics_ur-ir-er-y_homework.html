@@ -1064,7 +1064,8 @@ function TAIL(){
     nodes.forEach(n=>{ const f=document.createDocumentFragment(); n.nodeValue.split(/([A-Za-z][A-Za-z'’]*)/).forEach((t,i)=>{ if(!t) return; if(i%2){ const s=document.createElement("span"); s.className="gw"+(HARD.has(gkey(t))?" hard":""); s.dataset.k=gkey(t); s.textContent=t; f.appendChild(s); } else f.appendChild(document.createTextNode(t)); }); n.parentNode.replaceChild(f,n); }); }
   glossify(document.body);
   const bad=[], pos={}; const chk=(t,g)=>{ if(!(t.answer>=0&&t.answer<t.options.length)) bad.push(g); if(new Set(t.options).size!==t.options.length) bad.push("dup "+g); (pos[g]=pos[g]||[]).push(t.answer); };
-  RW.forEach(t=>chk(t,"rw")); SEN.forEach(t=>chk(t,"sen")); TF.forEach(t=>chk(t,"tf"));
+  RW.forEach(t=>chk(t,"rw")); SEN.forEach(t=>chk(t,"sen"));
+  TF.forEach((t,i)=>{ if(!(t.a===0||t.a===1)) bad.push("tf"+i); (pos.tf=pos.tf||[]).push(t.a); });
   const miss=new Set(); document.querySelectorAll(".gw").forEach(w=>{ if(!GLOSS[w.dataset.k]) miss.add(w.dataset.k); }); if(miss.size) bad.push("gloss: "+[...miss].join(","));
   Object.keys(IMG).forEach(k=>{ if(!IMG[k]) bad.push("img "+k); });
   if(slots.children.length!==ALL.length) bad.push("slots");
