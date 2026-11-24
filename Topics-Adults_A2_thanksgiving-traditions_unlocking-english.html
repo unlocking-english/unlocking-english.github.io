@@ -1503,8 +1503,8 @@ const LESSON = {
 };
 const KEYS = [
   { id: "k1", tag: "Key 01 · Start", title: "A holiday of <em>thanks</em>", ru: "Small talk + разминка", art: "heart" },
-  { id: "k2", tag: "Key 02 · Words", title: "Food and <em>traditions</em>", ru: "Лексика: еда и праздники", art: "star" },
-  { id: "k3", tag: "Key 03 · Read", title: "The first <em>Thanksgiving</em>", ru: "Чтение: история праздника", art: "book" },
+  { id: "k2", tag: "Key 02 · Words", title: "Meet the <em>words</em>", ru: "Все слова темы: еда + история", art: "star" },
+  { id: "k3", tag: "Key 03 · Read", title: "The first <em>Thanksgiving</em>", ru: "Чтение: while → post", art: "book" },
   { id: "k4", tag: "Key 04 · Thanks", title: "I'm <em>thankful</em> for…", ru: "Язык благодарности", art: "blocks" },
   { id: "k5", tag: "Key 05 · Compare", title: "Russia and <em>the USA</em>", ru: "Сравниваем традиции", art: "bubbles" },
   { id: "k6", tag: "Key 06 · Finish", title: "My <em>gratitude</em> story", ru: "Тост и мини-пост", art: "people" }
@@ -1558,32 +1558,23 @@ const LEAD = [
   ["Do you know any American holidays?", "Знаешь какие-нибудь американские праздники?", "", ["Halloween, of course!", "Independence Day — 4 July", "Thanksgiving — about turkeys?", "Not really, no."]],
   ["Do we have a holiday in Russia when people say thank you to each other?", "Есть у нас праздник, когда люди говорят друг другу спасибо?", "", ["Not really — we congratulate more.", "Maybe Mother's Day?", "No, we thank people privately."]]
 ];
-/* Key 02 */
-const WHATIS = [
-  { prompt: "A big bird — the main food of the holiday.", ru: "", options: ["turkey", "pumpkin", "parade"], answer: "turkey" },
-  { prompt: "Bread and onions inside the turkey.", ru: "", options: ["gravy", "stuffing", "corn"], answer: "stuffing" },
-  { prompt: "A hot liquid sauce you pour over the meat.", ru: "", options: ["gravy", "cranberry sauce", "tea"], answer: "gravy" },
-  { prompt: "A sweet orange dessert for autumn.", ru: "", options: ["mashed potatoes", "pumpkin pie", "feast"], answer: "pumpkin pie" },
-  { prompt: "Potatoes mixed with butter and milk.", ru: "", options: ["mashed potatoes", "stuffing", "harvest"], answer: "mashed potatoes" },
-  { prompt: "A red berry sauce — sweet and sour.", ru: "", options: ["cranberry sauce", "gravy", "pumpkin pie"], answer: "cranberry sauce" }
-];
-const SORT = [
-  ["roast turkey", "food"], ["pumpkin pie", "food"], ["stuffing", "food"], ["cranberry sauce", "food"], ["mashed potatoes", "food"], ["gravy", "food"],
-  ["give thanks", "activity"], ["watch a parade", "activity"], ["have a feast", "activity"], ["cook together", "activity"], ["say a toast", "activity"], ["watch football", "activity"]
-];
-/* Key 03 */
+/* Key 02 · единый лексический этап: еда + ключевые слова истории */
 const MEET = [
-  ["🚢", "ship", "корабль", "A ship called the Mayflower left England."],
-  ["👥", "on board", "на борту", "There were 102 people on board."],
-  ["🕯️", "died", "умер(ли)", "The first winter was very hard, and many people died."],
-  ["👩‍🏫", "taught", "научил(и)", "The Native Americans taught the Pilgrims."],
-  ["🌽", "grow corn", "выращивать кукурузу", "They taught them how to grow corn."],
+  ["🦃", "roast turkey", "жареная индейка", "Families roast a big turkey for dinner."],
+  ["🍞", "stuffing", "начинка", "Bread and onions inside the turkey."],
+  ["🥣", "gravy", "подлива", "Pour the gravy over the meat."],
+  ["🥔", "mashed potatoes", "картофельное пюре", "Mashed potatoes with butter and milk."],
+  ["🍒", "cranberry sauce", "клюквенный соус", "A sweet and sour red berry sauce."],
+  ["🥧", "pumpkin pie", "тыквенный пирог", "Pumpkin pie is the traditional dessert."],
+  ["🚢", "the Pilgrims", "отцы-пилигримы", "In 1620 the Pilgrims sailed to America on the Mayflower."],
   ["🌾", "harvest", "урожай", "In autumn 1621 there was a good harvest."],
-  ["🍽️", "feast", "пир, застолье", "The Pilgrims prepared a big feast."],
-  ["💌", "invited", "пригласил(и)", "They invited their new friends."],
-  ["🙏", "give thanks", "благодарить", "They gave thanks for their food."],
+  ["🍽️", "feast", "пир, застолье", "They prepared a big feast for three days."],
+  ["🎈", "parade", "парад", "Many people watch a big parade with balloons."],
+  ["🙏", "give thanks", "благодарить", "Before dinner people give thanks for their food."],
+  ["🌽", "corn", "кукуруза", "The Native Americans taught them to grow corn."],
   ["📅", "national holiday", "национальный праздник", "Thanksgiving became a national holiday in 1863."]
 ];
+/* Key 03 */
 const NUMBERS = [
   { prompt: "1620", ru: "", options: ["The year the Mayflower left England", "The number of Pilgrims", "The year of the first feast"], answer: "The year the Mayflower left England" },
   { prompt: "102", ru: "", options: ["People on board the Mayflower", "Turkeys every year", "Days of the first feast"], answer: "People on board the Mayflower" },
@@ -1683,8 +1674,8 @@ const TEACHER = {
   plan: [
     ["Small talk + review of the last lesson", 5, "Chats about the week; 2–3 quick questions on the last lesson's language.", "Talks freely.", "Note fossilised errors.", "k1"],
     ["Lead-in: 🦃🍂🥧", 2, "Asks the 3 lead-in questions, shows the emoji line.", "Guesses the holiday.", "No rules yet — just ideas.", "k1"],
-    ["Vocabulary: food & traditions", 9, "Reads definitions, drills pronunciation; sets the practice generator.", "Matches 6 foods, sorts 12 items, plays a generator round.", "ɜː in turkey, stress: celeBRAtion.", "k2"],
-    ["Reading: pre → while → post", 13, "Pre: drill the 10 word cards (tap, listen, repeat, hide). While: S reads and does the numbers task. Post: checks T/F + questions.", "Taps word cards, reads, taps unknown words, matches 6 numbers, does T/F (6) + 3 questions.", "Scan for years 1620/1621/1863.", "k3"],
+    ["Vocabulary: Meet the words", 9, "Drills the 13 word cards (tap, listen, repeat; hide & name them), θ-insert, sets the practice round.", "Taps 13 word cards, hides and names them, plays a generator round.", "ɜː in turkey, stress: celeBRAtion.", "k2"],
+    ["Reading: while → post", 13, "No new words. Sets the reading + numbers task; checks T/F and questions.", "Reads, taps unknown words, matches 6 numbers, does T/F (6) + 3 questions.", "Scan for years 1620/1621/1863.", "k3"],
     ["Thanks-language (guided discovery)", 9, "Guides: which preposition? for + what form?", "Answers 4 discovery Qs, chooses in 6 sentences, translates 4.", "for + noun/-ing; on + day.", "k4"],
     ["Speaking: Russia vs the USA", 13, "Asks along, adds ideas (Масленица, Старый Новый год…), notes errors.", "Answers 5 questions, agrees/disagrees, gives opinions.", "Fluency > accuracy; feed ideas.", "k5"],
     ["Final: 1-minute story + toast + post", 7, "Prepares S, listens to the story + toast, sets the written post, can-do stars.", "Gives a 1-minute story + a toast; starts the post.", "Checklist on screen.", "k6"],
@@ -1708,7 +1699,7 @@ function meetWords(list) {
   return h("div", { class: "card" }, h("div", { class: "small muted", style: "margin-bottom:8px" }, "🔢 10 words from the story · 10 слов из истории"), grid, btn);
 }
 function build() {
-  headerStd([[60, "Minutes"], [18, "New words"], [4, "Keys to unlock"]], ["🦃", "🍂", "🥧", "🍁", "🛒"]);
+  headerStd([[60, "Minutes"], [13, "Word cards"], [6, "Keys"]], ["🦃", "🍂", "🥧", "🍁", "🛒"]);
   { const s = section(KEYS[0], 0);
     s.append(missionCard(MISSION));
     s.append(wordBank(BANK_WORDS, BANK_RULES));
@@ -1720,27 +1711,23 @@ function build() {
   }
   { const s = section(KEYS[1], 1);
     s.append(stageBadge("3", "Vocabulary: food & traditions", "Лексика · 9 мин"));
-    s.append(...sT("A", "What is it?", "Read the definition and choose the food.", "Прочитай определение и выбери блюдо.", [["definition", "определение"]]));
-    s.append(mcqList("k2", WHATIS, 1, "Key 02 · A · What is it", { keepOrder: true }));
+    s.append(...sT("A", "Meet the words", "Tap each card: listen and repeat. Read the example. Then hide the words — can you name them?", "Нажми на карточку: послушай и повтори. Прочитай пример. Потом спрячь слова — сможешь назвать?", [["stuffing", "начинка"], ["gravy", "подлива"]]));
+    s.append(meetWords(MEET));
     s.append(pronTipEl({ w: "Thanksgiving", ipa: "θæŋksˈɡɪvɪŋ", ru: "День благодарения", tip: "th — язык между зубами и дуем: θ. th не читается как «с» или «з». Same sound: thanks, thankful, Thursday.", pairs: [["thanks", "θæŋks"], ["Thursday", "ˈθɜːzdeɪ"]] }));
-    s.append(...sT("B", "Food or activity?", "Put each item in the right column.", "Разложи по колонкам.", []));
-    s.append(sorterC("k2", SORT, [["food", "🍽 On the table", "еда со стола"], ["activity", "🎉 On the day", "что делают в праздник"]], "Key 02 · B · Food or activity"));
-    s.append(...sT("🎲", "Practice", "A round of practice with today's words. Modes: Mix / Spelling / Words.", "Раунд тренировки сегодняшних слов. Режимы: Mix / Spelling / Words.", []));
+    s.append(...sT("B", "Practice", "A round of practice with today's words. Modes: Mix / Spelling / Words.", "Раунд тренировки сегодняшних слов. Режимы: Mix / Spelling / Words.", []));
     practiceGen(s, { key: "k2", name: "Key 02 · Practice generator", size: 8,
       words: VOCAB.filter(([w]) => !w.includes("!") && (!w.includes(" ") || ["mashed potatoes", "pumpkin pie", "give thanks", "cranberry sauce"].includes(w))).map(([w, ru]) => ({ w, ru })) });
   }
   { const s = section(KEYS[2], 2);
-    s.append(stageBadge("4", "Reading: pre → while → post", "Работа с текстом · 13 мин"));
-    s.append(...sT("A · Pre-reading", "Meet the words", "Tap each card: listen and repeat. Read the example. Then hide the words — can you name them?", "Нажми на карточку: послушай и повтори. Прочитай пример. Потом спрячь слова — сможешь назвать?", [["harvest", "урожай"], ["feast", "пир"]]));
-    s.append(meetWords(MEET));
+    s.append(stageBadge("4", "Reading: while → post", "Работа с текстом · 13 мин"));
     s.append(pronTipEl({ w: "turkey", ipa: "ˈtɜːki", ru: "индейка", mode: "read", tip: "ɜː — долгий звук, губы округлены, как в bird, work, early. Не «тёркей» и не «турок»!", pairs: [["bird", "bɜːd"], ["work", "wɜːk"], ["Thursday", "ˈθɜːzdeɪ"]] }));
-    s.append(...sT("B · While you read", "The story + the numbers", "Read the story. Tap blue words for a translation, 🔊 to listen to a paragraph. Then find: what does each number mean?", "Прочитай историю. Синие слова — перевод, 🔊 — послушать абзац. Потом найди: что значит каждое число?", []));
+    s.append(...sT("A · While you read", "The story + the numbers", "All words are from Key 02. Read the story: tap blue words for a translation, 🔊 to listen to a paragraph. Then find: what does each number mean?", "Все слова — из Key 02. Прочитай историю: синие слова — перевод, 🔊 — послушать абзац. Потом найди: что значит каждое число?", []));
     s.append(storyCard());
-    s.append(mcqList("k3", NUMBERS, 2, "Key 03 · B · While-reading · Numbers", { keepOrder: true }));
-    s.append(...sT("C · Post-reading", "True or False?", "For false sentences, say the correct version aloud.", "Неверные утверждения исправь вслух.", []));
-    s.append(tfList("k3", TF, "Key 03 · C · Post-reading · True / False"));
-    s.append(...sT("D · Post-reading", "Questions", "Choose the correct answer.", "Выбери правильный ответ.", []));
-    s.append(mcqList("k3", QREAD, 8, "Key 03 · D · Post-reading · Questions"));
+    s.append(mcqList("k3", NUMBERS, 2, "Key 03 · A · While-reading · Numbers", { keepOrder: true }));
+    s.append(...sT("B · Post-reading", "True or False?", "For false sentences, say the correct version aloud.", "Неверные утверждения исправь вслух.", []));
+    s.append(tfList("k3", TF, "Key 03 · B · Post-reading · True / False"));
+    s.append(...sT("C · Post-reading", "Questions", "Choose the correct answer.", "Выбери правильный ответ.", []));
+    s.append(mcqList("k3", QREAD, 8, "Key 03 · C · Post-reading · Questions"));
   }
   { const s = section(KEYS[3], 3);
     s.append(stageBadge("5", "Language: saying thanks", "Язык благодарности · 9 мин"));
