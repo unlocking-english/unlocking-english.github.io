@@ -1750,8 +1750,9 @@ function build() {
     s.append(...sT("🎯", "Your 1-minute gratitude story", "Prepare each step (30 seconds), then give the whole story to your teacher like a toast. Tap Done after each step.", "Подготовь каждый шаг (30 секунд), потом расскажи всё учителю как тост. После каждого шага — Done.", [["toast", "тост"]]));
     s.append(h("div", { class: "card rule" }, h("b", null, "✅ Checklist"), h("p", null, "□ 2+ × I'm thankful / grateful for …", h("br"), "□ 3+ topic words (turkey, parade, tradition…)", h("br"), "□ 1 comparison with a Russian holiday", h("br"), "□ a toast at the end", h("br"), "🚫 no “thankful to” + за что · no “in the fourth Thursday”"), ruHide("Два+ раза «за что благодарен», слова темы, сравнение с Россией, тост в конце.")));
     s.append(speakSteps("k6", TOAST, "Key 06 · Gratitude story (evidence)"));
-    s.append(...sT("✍️", "My gratitude list", "Write a short post (40–60 words): 3 things you are thankful for + why, 1 comparison with Russian holidays, and a toast at the end. Watch the ✓ list!", "Напиши короткий пост (40–60 слов): 3 вещи, за которые благодарен(на) + почему, 1 сравнение с русскими праздниками и тост в конце. Следи за списком ✓!", []));
-    s.append(writeBox("k6", "Key 06 · My post", "My gratitude list", POST_CHECKS, "This year I'm thankful for…", POST_MODEL, 7));
+    s.append(...sT("✍️", "My gratitude list", "Write a short post (40–60 words): 3 things you are thankful for + why, 1 comparison with Russian holidays, and a toast at the end. Look at the sample first, then watch the ✓ list!", "Напиши короткий пост (40–60 слов): 3 вещи, за которые благодарен(на) + почему, 1 сравнение с русскими праздниками и тост в конце. Сначала посмотри образец, потом следи за списком ✓!", []));
+    s.append(h("div", { class: "card" }, h("span", { class: "eyebrow" }, "👀 Sample · Образец"), h("p", { class: "story-t" }, POST_MODEL, " ", listenBtn(POST_MODEL)), ruHide("Это образец — не копируй его, напиши свой!")));
+    s.append(writeBox("k6", "Key 06 · My post", "My gratitude list", POST_CHECKS, "This year I'm thankful for…", null, 7));
   }
   glossAll(document.getElementById("lesson"));
   checkYourself(CAN_DO);
