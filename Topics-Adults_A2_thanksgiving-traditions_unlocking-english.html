@@ -814,8 +814,6 @@ textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px
 /* Thanksgiving lesson extras */
 .emoline{display:flex;gap:10px;justify-content:center;align-items:center;font-size:52px;line-height:1.2;padding:10px 0 4px;letter-spacing:2px}
 .emoline small{font-size:22px;letter-spacing:0;opacity:.85}
-.blog-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.blog-h .av{width:32px;height:32px;border-radius:999px;background:#3E6A8A;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
 /* Meet the words (pre-reading) */
 .mwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:10px 0}
 .mwc{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:12px 10px;text-align:center}
@@ -824,6 +822,10 @@ textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px
 .mwc .mru{display:inline-block;margin-top:2px}
 .mwc .mex{display:block;font-size:13px;line-height:18px;opacity:.85;margin-top:6px}
 .mwhide .mwword,.mwhide .mex,.mwhide .mru{visibility:hidden}
+/* reading post (so2b textCard style) */
+.rtext h4{font:700 20px/1.3 var(--f-display);margin:0 0 6px}
+.rtext p{line-height:1.65}
+.rtext b{color:#3E6A8A}
 /* feast painting */
 .feastpic{margin:10px 0}
 .feastpic img{width:100%;max-width:720px;display:block;border-radius:16px;box-shadow:0 8px 20px rgba(74,52,38,.18)}
@@ -1588,11 +1590,11 @@ const NUMBERS = [
   { prompt: "46 million", ru: "", options: ["Turkeys on the table every Thanksgiving", "People in New York", "Pilgrims in 1620"], answer: "Turkeys on the table every Thanksgiving" }
 ];
 const STORY = [
-  "Thanksgiving is the biggest family holiday in the USA. It is on the fourth Thursday of November, and this year it is on 26 November. Schools and offices are closed, and families travel across the country to be together.",
-  "The story starts in 1620. A ship called the Mayflower left England with 102 people on board. They wanted a new life in a new country. Today we remember them as the Pilgrims.",
-  "The first winter was very hard, and many people died. The Native Americans helped them: they taught the Pilgrims how to grow corn and catch fish. In autumn 1621 there was a good harvest, so the Pilgrims prepared a big feast and invited their new friends. For three days they ate, played games and gave thanks for their food and their new home.",
-  "Thanksgiving became a national holiday in 1863, when President Abraham Lincoln said that all Americans should give thanks on the same day. Today the President 'pardons' one turkey — the bird goes to a farm, not to the table!",
-  "Today about 46 million turkeys finish on the table: roast turkey with stuffing and gravy, mashed potatoes, cranberry sauce and, of course, pumpkin pie. Many people watch a big parade with balloons in New York or a football game. Before dinner, people go round the table and say what they are thankful for. And the next day is Black Friday — the biggest shopping day of the year!"
+  "<b>Thanksgiving</b> is the biggest family holiday in the USA. It is on <b>the fourth Thursday of November</b>, and this year it is on 26 November. Schools and offices are closed, and families travel across the country to be together.",
+  "The story starts in 1620. A ship called <b>the Mayflower</b> left England with 102 people on board. They wanted a new life in a new country. Today we remember them as <b>the Pilgrims</b>.",
+  "The first winter was very hard, and many people <b>died</b>. The <b>Native Americans</b> helped them: they <b>taught</b> the Pilgrims how to <b>grow corn</b> and catch fish. In autumn 1621 there was a good <b>harvest</b>, so the Pilgrims prepared a big <b>feast</b> and invited their new friends. For three days they ate, played games and <b>gave thanks</b> for their food and their new home.",
+  "Thanksgiving became a <b>national holiday</b> in 1863, when President Abraham Lincoln said that all Americans should give thanks on the same day. Today the President <b>'pardons'</b> one turkey — the bird goes to a farm, not to the table!",
+  "Today about 46 million turkeys finish on the table: roast turkey with <b>stuffing</b> and <b>gravy</b>, <b>mashed potatoes</b>, <b>cranberry sauce</b> and, of course, <b>pumpkin pie</b>. Many people watch a big <b>parade</b> with balloons in New York or a football game. Before dinner, people go round the table and say what they are <b>thankful</b> for. And the next day is <b>Black Friday</b> — the biggest shopping day of the year!"
 ];
 const TF = [
   ["Thanksgiving is on the fourth Thursday of November.", true, ""],
@@ -1687,9 +1689,9 @@ const TEACHER = {
     ["Buffer", 0, "Built into generous estimates above.", "", "", ""]
   ]
 };
+/* карточка чтения — как textCard в so2b_common.js (пост-стиль, одна кнопка Listen) */
 function storyCard() {
-  return h("div", { class: "card" }, h("div", { class: "blog-h" }, h("span", { class: "av" }, "🦃"), h("span", { class: "small muted" }, "A2 reading · ~200 words")),
-    h("h4", { style: "font:700 20px/28px var(--f-display);margin:0 0 6px" }, "🍂 The story of Thanksgiving"), ...STORY.map(p => h("p", { class: "story-t" }, p, " ", listenBtn(p))));
+  return h("div", { class: "card rtext" }, h("h4", null, "The story of Thanksgiving · our retelling"), h("p", { class: "small muted" }, "Posted in November · A2 reading · ~200 words"), ...STORY.map(p => h("p", { html: p })), listenBtn(STORY.join(" ").replace(/<[^>]+>/g, ""), "Listen"));
 }
 /* pre-reading: meet the words — карточки с эмодзи, 🔊, скрытым переводом и примером */
 function meetWords(list) {
