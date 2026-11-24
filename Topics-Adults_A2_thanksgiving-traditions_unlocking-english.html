@@ -814,7 +814,16 @@ textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px
 /* Thanksgiving lesson extras */
 .emoline{display:flex;gap:10px;justify-content:center;align-items:center;font-size:52px;line-height:1.2;padding:10px 0 4px;letter-spacing:2px}
 .emoline small{font-size:22px;letter-spacing:0;opacity:.85}
-.story-t b.gw{font-weight:inherit}
+.blog-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.blog-h .av{width:32px;height:32px;border-radius:999px;background:#3E6A8A;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+/* Meet the words (pre-reading) */
+.mwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:10px 0}
+.mwc{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:12px 10px;text-align:center}
+.mwc .me{font-size:36px;line-height:1.15;display:block}
+.mwc .mwword{font-weight:800;font-size:17px;margin-top:4px;display:block;overflow-wrap:anywhere}
+.mwc .mru{display:inline-block;margin-top:2px}
+.mwc .mex{display:block;font-size:13px;line-height:18px;opacity:.85;margin-top:6px}
+.mwhide .mwword,.mwhide .mex,.mwhide .mru{visibility:hidden}
 </style>
 <script>
 /* =========================================================
@@ -1563,6 +1572,26 @@ const SORT = [
   ["give thanks", "activity"], ["watch a parade", "activity"], ["have a feast", "activity"], ["cook together", "activity"], ["say a toast", "activity"], ["watch football", "activity"]
 ];
 /* Key 03 */
+const MEET = [
+  ["🚢", "ship", "корабль", "A ship called the Mayflower left England."],
+  ["👥", "on board", "на борту", "There were 102 people on board."],
+  ["🕯️", "died", "умер(ли)", "The first winter was very hard, and many people died."],
+  ["👩‍🏫", "taught", "научил(и)", "The Native Americans taught the Pilgrims."],
+  ["🌽", "grow corn", "выращивать кукурузу", "They taught them how to grow corn."],
+  ["🌾", "harvest", "урожай", "In autumn 1621 there was a good harvest."],
+  ["🍽️", "feast", "пир, застолье", "The Pilgrims prepared a big feast."],
+  ["💌", "invited", "пригласил(и)", "They invited their new friends."],
+  ["🙏", "give thanks", "благодарить", "They gave thanks for their food."],
+  ["📅", "national holiday", "национальный праздник", "Thanksgiving became a national holiday in 1863."]
+];
+const NUMBERS = [
+  { prompt: "1620", ru: "", options: ["The year the Mayflower left England", "The number of Pilgrims", "The year of the first feast"], answer: "The year the Mayflower left England" },
+  { prompt: "102", ru: "", options: ["People on board the Mayflower", "Turkeys every year", "Days of the first feast"], answer: "People on board the Mayflower" },
+  { prompt: "1621", ru: "", options: ["The year of the first Thanksgiving feast", "The year it became a national holiday", "The year of the parade"], answer: "The year of the first Thanksgiving feast" },
+  { prompt: "3 days", ru: "", options: ["How long the first feast lasted", "How many ships came", "How many presidents",], answer: "How long the first feast lasted" },
+  { prompt: "1863", ru: "", options: ["The year Thanksgiving became a national holiday", "The first winter", "The year the Mayflower left"], answer: "The year Thanksgiving became a national holiday" },
+  { prompt: "46 million", ru: "", options: ["Turkeys on the table every Thanksgiving", "People in New York", "Pilgrims in 1620"], answer: "Turkeys on the table every Thanksgiving" }
+];
 const STORY = [
   "Thanksgiving is the biggest family holiday in the USA. It is on the fourth Thursday of November, and this year it is on 26 November. Schools and offices are closed, and families travel across the country to be together.",
   "The story starts in 1620. A ship called the Mayflower left England with 102 people on board. They wanted a new life in a new country. Today we remember them as the Pilgrims.",
@@ -1655,7 +1684,7 @@ const TEACHER = {
     ["Small talk + review of the last lesson", 5, "Chats about the week; 2–3 quick questions on the last lesson's language.", "Talks freely.", "Note fossilised errors.", "k1"],
     ["Lead-in: 🦃🍂🥧", 2, "Asks the 3 lead-in questions, shows the emoji line.", "Guesses the holiday.", "No rules yet — just ideas.", "k1"],
     ["Vocabulary: food & traditions", 9, "Reads definitions, drills pronunciation; sets the practice generator.", "Matches 6 foods, sorts 12 items, plays a generator round.", "ɜː in turkey, stress: celeBRAtion.", "k2"],
-    ["Reading: the history", 13, "Sets the task: read/tap words, then T/F + questions; checks answers.", "Reads, taps unknown words, does T/F (6) + 3 questions.", "Scan for years 1620/1621/1863.", "k3"],
+    ["Reading: pre → while → post", 13, "Pre: drill the 10 word cards (tap, listen, repeat, hide). While: S reads and does the numbers task. Post: checks T/F + questions.", "Taps word cards, reads, taps unknown words, matches 6 numbers, does T/F (6) + 3 questions.", "Scan for years 1620/1621/1863.", "k3"],
     ["Thanks-language (guided discovery)", 9, "Guides: which preposition? for + what form?", "Answers 4 discovery Qs, chooses in 6 sentences, translates 4.", "for + noun/-ing; on + day.", "k4"],
     ["Speaking: Russia vs the USA", 13, "Asks along, adds ideas (Масленица, Старый Новый год…), notes errors.", "Answers 5 questions, agrees/disagrees, gives opinions.", "Fluency > accuracy; feed ideas.", "k5"],
     ["Final: 1-minute story + toast + post", 7, "Prepares S, listens to the story + toast, sets the written post, can-do stars.", "Gives a 1-minute story + a toast; starts the post.", "Checklist on screen.", "k6"],
@@ -1664,8 +1693,19 @@ const TEACHER = {
   ]
 };
 function storyCard() {
-  return h("div", { class: "card story" }, h("div", { class: "blog-h" }, h("span", { class: "av" }, "🦃"), h("span", { class: "small muted" }, "A2 reading · ~200 words")),
-    h("h4", null, "🍂 The story of Thanksgiving"), ...STORY.map(p => h("p", { class: "story-t" }, p, " ", listenBtn(p))));
+  return h("div", { class: "card" }, h("div", { class: "blog-h" }, h("span", { class: "av" }, "🦃"), h("span", { class: "small muted" }, "A2 reading · ~200 words")),
+    h("h4", { style: "font:700 20px/28px var(--f-display);margin:0 0 6px" }, "🍂 The story of Thanksgiving"), ...STORY.map(p => h("p", { class: "story-t" }, p, " ", listenBtn(p))));
+}
+/* pre-reading: meet the words — карточки с эмодзи, 🔊, скрытым переводом и примером */
+function meetWords(list) {
+  const grid = h("div", { class: "mwgrid" });
+  list.forEach(([e, w, ru, ex]) => grid.append(h("div", { class: "mwc" },
+    h("span", { class: "me" }, e),
+    h("span", { class: "mwword" }, w, " ", listenBtn(w)),
+    h("span", { class: "mru" }, ruHide(ru)),
+    h("span", { class: "mex" }, ex, " ", listenBtn(ex)))));
+  const btn = h("button", { class: "btn ghost", type: "button", onclick: () => { grid.classList.toggle("mwhide"); btn.textContent = grid.classList.contains("mwhide") ? "👀 Show the words · Показать слова" : "🙈 Hide the words — can you name them? · Сможешь назвать?"; } }, "🙈 Hide the words — can you name them?");
+  return h("div", { class: "card" }, h("div", { class: "small muted", style: "margin-bottom:8px" }, "🔢 10 words from the story · 10 слов из истории"), grid, btn);
 }
 function build() {
   headerStd([[60, "Minutes"], [18, "New words"], [4, "Keys to unlock"]], ["🦃", "🍂", "🥧", "🍁", "🛒"]);
@@ -1690,14 +1730,17 @@ function build() {
       words: VOCAB.filter(([w]) => !w.includes("!") && (!w.includes(" ") || ["mashed potatoes", "pumpkin pie", "give thanks", "cranberry sauce"].includes(w))).map(([w, ru]) => ({ w, ru })) });
   }
   { const s = section(KEYS[2], 2);
-    s.append(stageBadge("4", "Reading: the history", "Чтение · 13 мин"));
-    s.append(...sT("C", "The story of Thanksgiving", "Read the story. Tap blue words for a translation, 🔊 to listen to a paragraph.", "Прочитай историю. Синие слова — перевод, 🔊 — послушать абзац.", [["harvest", "урожай"], ["feast", "пир"]]));
-    s.append(storyCard());
+    s.append(stageBadge("4", "Reading: pre → while → post", "Работа с текстом · 13 мин"));
+    s.append(...sT("A · Pre-reading", "Meet the words", "Tap each card: listen and repeat. Read the example. Then hide the words — can you name them?", "Нажми на карточку: послушай и повтори. Прочитай пример. Потом спрячь слова — сможешь назвать?", [["harvest", "урожай"], ["feast", "пир"]]));
+    s.append(meetWords(MEET));
     s.append(pronTipEl({ w: "turkey", ipa: "ˈtɜːki", ru: "индейка", mode: "read", tip: "ɜː — долгий звук, губы округлены, как в bird, work, early. Не «тёркей» и не «турок»!", pairs: [["bird", "bɜːd"], ["work", "wɜːk"], ["Thursday", "ˈθɜːzdeɪ"]] }));
-    s.append(...sT("D", "True or False?", "For false sentences, say the correct version aloud.", "Неверные утверждения исправь вслух.", []));
-    s.append(tfList("k3", TF, "Key 03 · D · True / False"));
-    s.append(...sT("E", "Questions", "Choose the correct answer.", "Выбери правильный ответ.", []));
-    s.append(mcqList("k3", QREAD, 2, "Key 03 · E · Questions"));
+    s.append(...sT("B · While you read", "The story + the numbers", "Read the story. Tap blue words for a translation, 🔊 to listen to a paragraph. Then find: what does each number mean?", "Прочитай историю. Синие слова — перевод, 🔊 — послушать абзац. Потом найди: что значит каждое число?", []));
+    s.append(storyCard());
+    s.append(mcqList("k3", NUMBERS, 2, "Key 03 · B · While-reading · Numbers", { keepOrder: true }));
+    s.append(...sT("C · Post-reading", "True or False?", "For false sentences, say the correct version aloud.", "Неверные утверждения исправь вслух.", []));
+    s.append(tfList("k3", TF, "Key 03 · C · Post-reading · True / False"));
+    s.append(...sT("D · Post-reading", "Questions", "Choose the correct answer.", "Выбери правильный ответ.", []));
+    s.append(mcqList("k3", QREAD, 8, "Key 03 · D · Post-reading · Questions"));
   }
   { const s = section(KEYS[3], 3);
     s.append(stageBadge("5", "Language: saying thanks", "Язык благодарности · 9 мин"));
