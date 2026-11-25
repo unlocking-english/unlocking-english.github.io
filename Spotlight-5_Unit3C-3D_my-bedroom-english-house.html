@@ -775,10 +775,13 @@ body{overflow-x:hidden}
 /* Spotlight-5 3C-3D · extra styles */
 .grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(7px)}
 .pg-pic{font-size:56px;line-height:1.2}
+/* SVG-сценки предлогов */
+.etile .emo svg{width:76px;height:57px}
+.artbox.sm svg{width:150px;height:113px}
 .roomgrid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
 .roomgrid button{border:none;background:var(--paper,#fff);border-radius:var(--r-md,14px);box-shadow:0 3px 0 rgba(59,42,31,.12);padding:8px 10px;font:700 14px/18px var(--f-sans);color:var(--ink,#3B2A1F);cursor:pointer;min-height:44px}
 .roomgrid button .emo{display:block;font-size:34px;line-height:40px}
-@media (max-width:480px){.grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(5px)}}
+@media (max-width:480px){.grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(5px)}.etile .emo svg{width:64px;height:48px}}
 
 </style>
 </head>
@@ -854,7 +857,20 @@ const TR = { in:"ɪn", on:"ɒn", under:"ˈʌndə", behind:"bɪˈhaɪnd", "next t
   upstairs:"ˌʌpˈsteəz", downstairs:"ˌdaʊnˈsteəz", fireplace:"ˈfaɪəpleɪs", garden:"ˈɡɑːdn", carpet:"ˈkɑːpɪt" };
 const trs = w => TR[w.toLowerCase()]?`<span class="trn">[${TR[w.toLowerCase()]}]</span>`:"";
 
-const EMO = { in:"📥", on:"🖊️", under:"⬇️", behind:"🔜", "next to":"↔️", "in front of":"⏩" };
+/* SVG-сценки: предлог показан положением предметов */
+function sceneSVG(prep){
+  const T=(x,y,s,e)=>`<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle">${e}</text>`;
+  const R=(x,y,w,h,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${f}" stroke="#8D5524" stroke-width="3"/>`;
+  const L=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8D5524" stroke-width="5" stroke-linecap="round"/>`;
+  let s="";
+  if(prep==="in"){ s=R(15,28,90,52,"#E8C08A")+T(60,74,36,"🐈")+R(15,28,90,15,"#D9A05B"); }
+  else if(prep==="on"){ s=T(60,56,38,"💡")+L(20,58,100,58)+L(28,58,28,84)+L(92,58,92,84); }
+  else if(prep==="under"){ s=R(6,6,10,26,"#D9A05B")+R(104,6,10,26,"#D9A05B")+R(12,20,96,12,"#F5DE3D")+L(18,32,18,82)+L(102,32,102,82)+T(60,80,34,"⚽"); }
+  else if(prep==="behind"){ s=T(98,58,34,"⚽")+R(20,30,72,50,"#E8C08A"); }
+  else if(prep==="next to"){ s=T(34,62,36,"📚")+T(86,62,36,"🪑"); }
+  else if(prep==="in front of"){ s=R(25,8,70,72,"#E8C08A")+L(60,14,60,74)+R(14,46,92,16,"#F5DE3D")+L(20,62,20,84)+L(100,62,100,84); }
+  return `<svg viewBox="0 0 120 90" width="130" height="98" role="img" aria-hidden="true">${s}</svg>`;
+}
 
 const GLOSS = {
   /* предлоги */
@@ -880,10 +896,10 @@ const PREPS = [
   {w:"in front of", ru:"перед",            ex:"The bed is in front of the wardrobe."}
 ];
 const PGAP = [
-  {q:"The cat is ___ the box.",        options:["in","on","under"],       answer:0, ru:"Кошка — в коробке."},
-  {q:"The ball is ___ the bed.",       options:["behind","under","on"],   answer:1, ru:"Мяч — под кроватью."},
-  {q:"The lamp is ___ the desk.",      options:["under","next to","on"],  answer:2, ru:"Лампа — на столе."},
-  {q:"The bookcase is ___ the desk.",  options:["next to","in","behind"], answer:0, ru:"Книжный шкаф — рядом со столом."}
+  {q:"The cat is ___ the box.",        options:["in","on","under"],       answer:0, scene:"in",      ru:"Кошка — в коробке."},
+  {q:"The ball is ___ the bed.",       options:["behind","under","on"],   answer:1, scene:"under",   ru:"Мяч — под кроватью."},
+  {q:"The lamp is ___ the desk.",      options:["under","next to","on"],  answer:2, scene:"on",      ru:"Лампа — на столе."},
+  {q:"The bookcase is ___ the desk.",  options:["next to","in","behind"], answer:0, scene:"next to", ru:"Книжный шкаф — рядом со столом."}
 ];
 
 /* ---- 3 Peter's bedroom ---- */
@@ -983,12 +999,18 @@ const PW = [
   {w:"garden",ru:"сад",pic:`<span style="font-size:56px;line-height:1">🌷</span>`}
 ];
 const PS = [
-  {q:"The ball is ___ the bed.",   options:["under","in","on"],   answer:0},
-  {q:"The lamp is ___ the desk.",  options:["under","on","behind"], answer:1},
-  {q:"The bookcase is ___ to the desk.", options:["in","next","under"], answer:1},
-  {q:"The bed is in ___ of the wardrobe.", options:["front","next","on"], answer:0},
+  {q:"The poster is ___ the bed.",       options:["in","behind","under"], answer:1},
+  {q:"The socks are ___ the wardrobe.",  options:["in","on","behind"],    answer:0},
+  {q:"The carpet is ___ the floor.",     options:["under","behind","on"], answer:2},
+  {q:"The football is ___ the chair.",   options:["under","on","in"],     answer:0},
+  {q:"The lamp is ___ to the bed.",      options:["on","in","next"],      answer:2},
+  {q:"The bed is in ___ of the desk.",   options:["next","front","on"],   answer:1},
+  {q:"The books are ___ the bookcase.",  options:["under","in","behind"], answer:1},
+  {q:"The cat is ___ the window.",       options:["under","next to","in"],answer:1},
   {order:"The cat is under the bed."},
-  {order:"The poster is behind the bed."}
+  {order:"The poster is behind the bed."},
+  {order:"The lamp is on the desk."},
+  {order:"The bookcase is next to the door."}
 ];
 
 const STICKERS = ["🛏️","📍","🪟","🚪","📚","🏠","🌷","⭐"];
@@ -1080,13 +1102,12 @@ function BUILD(){
   const grid=el("div","grid"); grid.id="gridP"; p.appendChild(grid); B.appendChild(p);
   const seen=new Set();
   PREPS.forEach((x,i)=>{ const b=el("button","etile"); b.type="button"; b.dataset.k=x.w; b.style.setProperty("--tilt",[-2,1,-1,2,-3,1][i%6]+"deg");
-    b.innerHTML=`<span class="emo">${EMO[x.w]}</span><span class="w">${x.w}</span>${trs(x.w)}<span class="r">${x.ru}</span><span class="r" style="color:var(--teal-deep,#1F6B57)">${x.ex}</span>`;
+    b.innerHTML=`<span class="emo">${sceneSVG(x.w)}</span><span class="w">${x.w}</span>${trs(x.w)}<span class="r">${x.ru}</span><span class="r" style="color:var(--teal-deep,#1F6B57)">${x.ex}</span>`;
     b.onclick=()=>{ speak(x.w); stick(grid.id,x.w); seen.add(i); b.classList.add("seen"); if(seen.size===PREPS.length) award("preps",b); };
     grid.appendChild(b); });
-  task(B,wordsHTML("🐱 Look and choose the preposition."),"Посмотри на картинку и выбери правильный предлог.",true);
-  const SCENES=["🐈📦","⚽🛏️","💡🪑","📚🪟"];
+  task(B,wordsHTML("🐱 Look at the picture and choose the preposition."),"Посмотри на картинку и выбери правильный предлог.",true);
   PGAP.forEach((t,i)=>{ const c=choiceCard(B,{q:wordsHTML(t.q),options:t.options,answer:t.answer},"pg"+i,{sayText:t.q,
-    pre:el("div","artbox sm",`<span style="font-size:40px;line-height:1">${SCENES[i]}</span>`),
+    pre:el("div","artbox sm",sceneSVG(t.scene)),
     onOk:()=>speak(t.q.replace("___",t.options[t.answer]))}); addTr(c,t.ru); });
   task(B,wordsHTML("🎲 Play with the words!"),"Тренажёр: слушай, пиши, собирай слова. Каждый раунд — новые задания!",true);
   practiceGen(B,{id:"gen",words:PW,sentences:PS,size:8});
