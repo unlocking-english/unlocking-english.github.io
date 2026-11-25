@@ -775,7 +775,13 @@ body{overflow-x:hidden}
 /* Best-Friends-Forever-3 CLIL3 · extra styles */
 .grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(7px)}
 .pg-pic{font-size:56px;line-height:1.2}
-@media (max-width:480px){.grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(5px)}}
+/* 🐞 find the bug */
+.toks{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.tok{border:2px solid #E6DCD0;border-radius:12px;background:var(--paper,#fff);padding:10px 14px;font:800 20px/26px var(--f-sans);color:var(--ink,#3B2A1F);cursor:pointer;min-height:44px;box-shadow:0 3px 0 rgba(59,42,31,.1)}
+.tok.found{background:#FCE8E6;border-color:#E5534B;color:#B8442F}
+.tok s{opacity:.6;margin-right:4px}
+.tok:disabled:not(.found){opacity:.45}
+@media (max-width:480px){.grid.blind .etile .w,.grid.blind .etile .trn{filter:blur(5px)}.tok{font-size:18px;padding:8px 12px}}
 
 </style>
 </head>
@@ -859,15 +865,23 @@ const trs = w => TR[w.toLowerCase()]?`<span class="trn">[${TR[w.toLowerCase()]}]
 const EMO = { piano:"🎹", guitar:"🎸", violin:"🎻", cello:"🎻", trumpet:"🎺" };
 
 const GLOSS = {
-  hi:"привет", i:"я", am:"есть (я — Robo)", robo:"Робо (наш робот)", welcome:"добро пожаловать", to:"к, на", my:"мой", music:"музыка", show:"шоу, представление",
-  is:"есть", magic:"волшебство", people:"люди", all:"все, весь", over:"по; all over the world — по всему миру", the:"(артикль — всегда с инструментом!)", world:"мир", love:"любить",
-  this:"это", mozart:"Моцарт (композитор)", he:"он", from:"из", austria:"Австрия", can:"мочь, уметь", play:"играть (на чём-то)", piano:"пианино", and:"и", violin:"скрипка",
-  bb:"Би-Би (B.B. King — музыкант)", king:"Кинг (фамилия)", america:"Америка", guitar:"гитара", his:"его", name:"имя", lucille:"Люсиль (так зовут его гитару)",
-  "vanessa-mae":"Ванесса-Мэй (скрипачка)", she:"она", very:"очень", fast:"быстро",
-  look:"смотри", cellos:"виолончели (мн. ч.)", luka:"Лука (имя)", stjepan:"Стьепан (имя)", they:"они", are:"есть (они)", croatia:"Хорватия", super:"супер",
-  what:"что, какой", about:"о; What about you? — А ты?", you:"ты"
+  /* рассказ */
+  hi:"привет", i:"я", am:"есть (I am — я)", robo:"Робо (наш робот)", welcome:"добро пожаловать", to:"к, на; want to play — хочу играть", my:"мой", music:"музыка", show:"шоу, представление",
+  is:"есть", magic:"волшебство", people:"люди", all:"все, весь", over:"по; all over the world — по всему миру", the:"(артикль — всегда перед инструментом!)", world:"мир", love:"любить",
+  this:"это, этот", mozart:"Моцарт (композитор)", he:"он", from:"из", austria:"Австрия", can:"мочь, уметь", play:"играть (на чём-то)", piano:"пианино", and:"и", violin:"скрипка",
+  bb:"Би-Би (B.B. King — гитарист)", king:"Кинг (фамилия)", america:"Америка", guitar:"гитара", his:"его", name:"имя; name them — назови их", lucille:"Люсиль (так зовут его гитару)",
+  "vanessa-mae":"Ванесса-Мэй (скрипачка)", she:"она", pop:"поп-музыка", her:"её", cellos:"виолончели; 2Cellos — дуэт двух виолончелистов", cello:"виолончель", rock:"рок-музыка", songs:"песни",
+  luka:"Лука (имя)", stjepan:"Стьепан (имя)", they:"они", are:"есть (they are — они)", croatia:"Хорватия", on:"на",
+  what:"что; какой", about:"о; What about you? — А ты?", you:"ты",
+  /* задания и инструкции */
+  do:"вспомогательный глагол; Do you like…? — Ты любишь…?", like:"нравиться, любить", air:"воздух; in the air — в воздухе", band:"группа, ансамбль", your:"твой", teacher:"учитель",
+  says:"говорит, называет", an:"(артикль)", instrument:"инструмент", it:"это; он/она (о предмете)", in:"в", meet:"знакомься; Meet the instruments! — Познакомься с инструментами!",
+  musical:"музыкальный", instruments:"инструменты", tap:"нажми", every:"каждую", card:"карточка", listen:"слушай", repeat:"повтори", hide:"спрятать", words:"слова", them:"их",
+  picture:"картинка", with:"с, на", little:"маленькое", word:"слово", always:"всегда", there:"там; is always there — всегда стоит", look:"смотри", find:"найди", bug:"жучок, ошибка",
+  wrong:"неправильное", build:"построй, собери", sentence:"предложение", at:"на; Look at — Посмотри на", stars:"звёзды", who:"кто", guess:"догадайся", first:"сначала", plays:"играет",
+  read:"читай", check:"проверь", guesses:"догадки", answer:"ответь", questions:"вопросы", true:"правда", or:"или", false:"неправда", make:"сделай", record:"запиши", want:"хотеть"
 };
-const HARD = new Set(["mozart","austria","bb","lucille","vanessa-mae","cellos","croatia","stjepan","magic"]);
+const HARD = new Set(["mozart","austria","bb","lucille","vanessa-mae","cellos","croatia","stjepan","magic","instrument","instruments","sentence"]);
 
 /* ---- 2 meet the words ---- */
 const W5 = [
@@ -880,15 +894,15 @@ const W5 = [
 
 /* ---- 3 listen & choose ---- */
 const LC2 = [
-  {say:"I can play the violin.",            opts:["guitar","piano","violin"], answer:2},
-  {say:"I can't play the guitar, but I can play the piano!", opts:["guitar","piano","trumpet"], answer:1}
+  {q:"🔊 Listen. What instrument is it?", say:"I can play the violin.",                        opts:["guitar","piano","violin"],  answer:2},
+  {q:"🔊 Listen. What can I play?",       say:"I can't play the guitar, but I can play the piano!", opts:["trumpet","piano","guitar"], answer:1}
 ];
 
 /* ---- 4 grammar: can / can't + play THE ---- */
-const GD = { q:"Look: play THE piano, play THE guitar, play THE violin. What little word is always there?", options:["a","the","to"], answer:1 };
+const GD = { q:"Look: play THE piano, play THE guitar, play THE violin. What little word is always there?", options:["a","the","to"], answer:1, ru:"Посмотри: play THE piano, play THE guitar, play THE violin. Какое маленькое слово всегда стоит там? (a / the / to — артикли и частица)" };
 const FIX = [
   {words:["I","can","to","play","the","piano."], bad:2, fix:"play"},
-  {words:["She","can","play","guitar."],         bad:3, fix:"the guitar."}
+  {words:["She","can","play","a","guitar."],     bad:3, fix:"the"}
 ];
 const BUILD_SENT = [
   {w:["I","can","play","the","piano."],   show:[2,0,4,1,3]},
@@ -901,20 +915,20 @@ const STORY = [
   {t:"Music is magic! People all over the world love music.", ru:"Музыка — это волшебство! Люди во всём мире любят музыку."},
   {t:"This is Mozart. He is from Austria. He can play the piano and the violin.", ru:"Это Моцарт. Он из Австрии. Он умеет играть на пианино и на скрипке."},
   {t:"This is B.B. King. He is from America. He can play the guitar. His guitar's name is Lucille!", ru:"Это Би-Би Кинг. Он из Америки. Он умеет играть на гитаре. Его гитару зовут Люсиль!"},
-  {t:"This is Vanessa-Mae. She can play the violin very fast!", ru:"Это Ванесса-Мэй. Она умеет очень быстро играть на скрипке!"},
-  {t:"Look! This is 2Cellos — Luka and Stjepan. They are from Croatia. They can play the cellos super fast!", ru:"Смотри! Это «2 виолончели» — Лука и Стьепан. Они из Хорватии. Они умеют играть на виолончелях супербыстро!"},
+  {t:"This is Vanessa-Mae. She can play pop music with her violin!", ru:"Это Ванесса-Мэй. Она умеет играть поп-музыку на скрипке!"},
+  {t:"Look! This is 2Cellos — Luka and Stjepan. They are from Croatia. They can play rock songs on the cello!", ru:"Смотри! Это дуэт 2Cellos — Лука и Стьепан. Они из Хорватии. Они умеют играть рок-песни на виолончели!"},
   {t:"What about you? What can you play?", ru:"А ты? На чём ты умеешь играть?"}
 ];
 const PRE_LEFT  = ["Mozart","B.B. King","Vanessa-Mae","2Cellos"];
-const PRE_RIGHT = ["🎹 piano","🎸 guitar","🎻 violin","🎻 cello"];
-const PRE_PAIRS = [[0,0],[1,1],[2,2],[3,3]];
+const PRE_RIGHT = ["🎻 violin","🎻 cello","🎹 piano","🎸 guitar"];
+const PRE_PAIRS = [[0,2],[1,3],[2,0],[3,1]];
 const SQ = [
-  {q:"Who plays the piano and the violin?", options:["Mozart","B.B. King","2Cellos"], answer:0},
-  {q:"B.B. King can play the …", options:["cello","guitar","trumpet"], answer:1},
-  {q:"Who plays the violin very fast?", options:["Mozart","2Cellos","Vanessa-Mae"], answer:2},
-  {q:"2Cellos are from …", options:["Austria","Croatia","America"], answer:1}
+  {q:"Who plays the piano and the violin?", options:["B.B. King","2Cellos","Mozart"], answer:2, ru:"Кто играет на пианино и на скрипке? (Би-Би Кинг / 2Cellos / Моцарт)"},
+  {q:"B.B. King can play the …",             options:["trumpet","guitar","cello"], answer:1, ru:"Би-Би Кинг умеет играть на … (труба / гитара / виолончель)"},
+  {q:"Who plays pop music with her violin?", options:["Mozart","2Cellos","Vanessa-Mae"], answer:2, ru:"Кто играет поп-музыку на скрипке? (Моцарт / 2Cellos / Ванесса-Мэй)"},
+  {q:"2Cellos are from …",                   options:["Croatia","America","Austria"], answer:0, ru:"2Cellos из … (Хорватия / Америка / Австрия)"}
 ];
-const TFQ = { q:"True or false? B.B. King can play the violin.", options:["True ✓","False ✗"], answer:1 };
+const TFQ = { q:"True or false? B.B. King can play the violin.", options:["True ✓","False ✗"], answer:1, ru:"Правда или неправда? Би-Би Кинг умеет играть на скрипке. (Правда ✓ / Неправда ✗)" };
 
 /* ---- 6 evidence: my music card ---- */
 const MROWS = [
@@ -988,6 +1002,23 @@ reg("g","gd"); FIX.forEach((_,i)=>reg("g","fx"+i)); BUILD_SENT.forEach((_,i)=>re
 reg("s","pre"); reg("s","read"); SQ.forEach((_,i)=>reg("s","sq"+i)); reg("s","tf");
 reg("m","card"); reg("m","rec");
 
+/* 🐞 find the bug — one wrong word in the sentence */
+function bugCard(B,t,id){
+  const card=el("div","card"); const toks=el("div","toks"), fb=fbEl(); card.append(toks,fb); B.appendChild(card);
+  const fixed=t.words.map((x,j)=>j===t.bad?t.fix:x).join(" ");
+  t.words.forEach((w,i)=>{ const b=el("button","tok",w); b.type="button";
+    b.onclick=()=>{
+      if(card.classList.contains("solved")) return;
+      if(!card.dataset.tried){ card.dataset.tried="1"; const mk=(card.closest(".mission")||{}).id||"x"; FTM[mk]=FTM[mk]||{n:0,ok:0}; FTM[mk].n++; FT.n++; if(i===t.bad){ FT.ok++; FTM[mk].ok++; } }
+      if(i===t.bad){
+        b.innerHTML=`<s>${w}</s> ${t.fix}`; b.classList.add("found"); b.disabled=true; card.classList.add("solved");
+        toks.querySelectorAll(".tok").forEach(x=>{ x.disabled=true; }); chime("ok"); setFb(fb,true,"Bug fixed! 🐞→✨");
+        card.appendChild(sayBtn(fixed,"Listen to the correct sentence")); award(id,b);
+      } else { shake(b); chime("bad"); setFb(fb,false); ueWrong(id,"tapped “"+w+"”","“"+t.words[t.bad]+"” → "+t.fix,"Find the bug"); }
+    };
+    toks.appendChild(b); });
+}
+
 /* =================== BUILD =================== */
 function BUILD(){
 /* ---- 0 hello ---- */
@@ -1001,7 +1032,7 @@ function BUILD(){
     NAME=v; inp.disabled=true; btn.disabled=true; chime("ok"); setFb(fb,true,`Hi, ${NAME}! Let's play music! 🎵`); award("nm",btn); };
   btn.onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); };
   B.appendChild(el("div","code",`<span class="ar">🎯</span><div><b>Today · Сегодня</b><p>I can name 5 instruments: <b>piano, guitar, violin, cello, trumpet</b>.<br>I can say: <b>I can play the piano! I can't play the trumpet.</b><br>Называю 5 инструментов и говорю, на чём я умею играть.</p></div>`));
-  task(B,"🎵 Do you like music? What music do you like?","Ты любишь музыку? Выбери и скажи: I like…",true);
+  task(B,wordsHTML("🎵 Do you like music? What music do you like?"),"Ты любишь музыку? Выбери и скажи: I like…",true);
   const c=el("div","card"); const g=el("div","verbs");
   LIKES.forEach(w=>{ const b=el("button","vchip",w); b.type="button";
     b.onclick=()=>{ g.querySelectorAll(".vchip").forEach(x=>x.classList.toggle("on",x===b)); speak("I like "+w.replace(/ [^ ]+$/,"")+"!"); award("hook",b); };
@@ -1011,7 +1042,7 @@ function BUILD(){
 
 /* ---- 1 warm-up: air band ---- */
 (function(){ const B=PANEL.r.body; goal(B,"r");
-  task(B,"🎶 Air band! Your teacher says an instrument — you play it in the air!","Воображаемый оркестр! Учитель называет инструмент (или нажимает кнопку) — а ты «играешь» на нём в воздухе. Гитара — воображаемая, пианино — на столе!");
+  task(B,wordsHTML("🎶 Air band! Your teacher says an instrument — you play it in the air!"),"Воображаемый оркестр! Учитель называет инструмент (или нажимает кнопку) — а ты «играешь» на нём в воздухе. Гитара — воображаемая, пианино — на столе!");
   const c=el("div","card"); B.appendChild(c);
   const g=el("div","verbs");
   Object.keys(EMO).forEach(w=>{ const b=el("button","vchip",`${EMO[w]} ${w}`); b.type="button"; b.dataset.ue="skip";
@@ -1026,8 +1057,8 @@ function BUILD(){
 /* ---- 2 instruments: meet the words ---- */
 (function(){ const B=PANEL.v.body; goal(B,"v");
   B.appendChild(el("p","rut","📖 SB p. 42 ex. 1 · Musical instruments"));
-  task(B,"🎹 Meet the instruments! Tap every card: listen and repeat.","Нажми на каждую карточку: послушай и повтори. Cello — это «большая скрипка».");
-  const p=el("div","poster"); p.innerHTML=`<h2 class="pt">Musical instruments!</h2><div class="pl">Tap · listen · repeat</div>`;
+  task(B,wordsHTML("🎹 Meet the instruments! Tap every card: listen and repeat."),"Нажми на каждую карточку: послушай и повтори. Cello — это «большая скрипка».");
+  const p=el("div","poster"); p.innerHTML=`<h2 class="pt">${wordsHTML("Musical instruments!")}</h2><div class="pl">Tap · listen · repeat</div>`;
   const grid=el("div","grid"); grid.id="gridW"; p.appendChild(grid); B.appendChild(p);
   const seen=new Set();
   W5.forEach((c,i)=>{ const b=el("button","etile"); b.type="button"; b.dataset.k=c.w; b.style.setProperty("--tilt",[-2,1,-1,2,0][i%5]+"deg");
@@ -1035,7 +1066,7 @@ function BUILD(){
     b.onclick=()=>{ speak(c.w); stick(grid.id,c.w); seen.add(i); b.classList.add("seen"); if(seen.size===W5.length) award("words",b); };
     grid.appendChild(b); });
   /* hide and remember */
-  task(B,"🙈 Hide the words — can you name them?","Нажми — слова спрячутся. Назови все 5 инструментов по памяти, потом проверь себя.",true);
+  task(B,wordsHTML("🙈 Hide the words — can you name them?"),"Нажми — слова спрячутся. Назови все 5 инструментов по памяти, потом проверь себя.",true);
   const hc=el("div","card"); B.appendChild(hc);
   const hb=el("button","btn","🙈 Hide the words · Спрятать слова"); hb.type="button"; hb.dataset.ue="skip";
   const sb=el("button","btn ghost","✓ I named them all! · Я назвал(а) все"); sb.type="button";
@@ -1049,9 +1080,9 @@ function BUILD(){
 
 /* ---- 3 listen & choose + 🎲 ---- */
 (function(){ const B=PANEL.l.body; goal(B,"l");
-  task(B,"🎧 Listen. What can I play? Tap the picture.","Послушай 🔊 и нажми на картинку. Во втором задании слушай внимательно: can или can't?",true);
+  task(B,wordsHTML("🎧 Listen. What can I play? Tap the picture."),"Послушай 🔊 и нажми на картинку. Во втором задании слушай внимательно: can или can't?",true);
   LC2.forEach((t,i)=>{
-    choiceCard(B,{q:"🔊 Listen. What instrument is it?",options:t.opts.map(x=>" "),answer:t.answer},"lc"+i,{
+    choiceCard(B,{q:wordsHTML(t.q),options:t.opts.map(x=>" "),answer:t.answer},"lc"+i,{
       sayText:t.say,
       optHTML:(x,j)=>`<span class="emo" style="font-size:44px;line-height:50px">${EMO[t.opts[j]]}</span>`,
       optLabel:(x,j)=>t.opts[j],
@@ -1059,54 +1090,54 @@ function BUILD(){
     });
   });
   B.appendChild(pronTipEl({w:"trumpet", ipa:"ˈtrʌmpɪt", ru:"труба", mode:"read"}));
-  task(B,"🎲 Play with the instrument words!","Тренажёр: слушай, пиши, собирай слова. Каждый раунд — новые задания. Ошибся — слово вернётся в конце раунда. Можно играть снова и снова!",true);
+  task(B,wordsHTML("🎲 Play with the instrument words!"),"Тренажёр: слушай, пиши, собирай слова. Каждый раунд — новые задания. Ошибся — слово вернётся в конце раунда. Можно играть снова и снова!",true);
   practiceGen(B,{id:"gen",words:PW,sentences:PS,size:8});
 })();
 
 /* ---- 4 can & THE ---- */
 (function(){ const B=PANEL.g.body; goal(B,"g");
-  task(B,"👀 Be a detective! Look at the instruments. What little word is always there?","Стань детективом! Посмотри: play THE piano, play THE guitar… Какое маленькое слово всегда рядом?",true);
-  choiceCard(B,GD,"gd",{onOk:()=>speak("play the piano, play the guitar, play the violin — always THE!")});
+  task(B,wordsHTML("👀 Be a detective! Look at the instruments. What little word is always there?"),"Стань детективом! Посмотри: play THE piano, play THE guitar… Какое маленькое слово всегда рядом?",true);
+  const gdc=choiceCard(B,{q:wordsHTML(GD.q),options:GD.options,answer:GD.answer},"gd",{sayText:GD.q,onOk:()=>speak("play the piano, play the guitar, play the violin — always THE!")}); addTr(gdc,GD.ru);
   B.appendChild(el("div","code",`<span class="ar">💡</span><div><b>can / can't + play THE + инструмент</b><p><b>I can play</b> the piano. — Я умею играть на пианино.<br><b>I can't play</b> the trumpet. — Я не умею играть на трубе.<br>⚠️ Не <s>I can to play</s> · после can — сразу <b>play</b>.<br>⚠️ Инструмент — всегда с <b>the</b>: play <b>the</b> guitar.</p></div>`));
-  task(B,"🐞 Find the bug! Tap the wrong word.","Найди ошибку! Нажми на неправильное слово.",true);
-  FIX.forEach((t,i)=>fixCard(B,t,"fx"+i));
-  task(B,"🧩 Build the sentence.","Собери предложение: нажимай слова по порядку.",true);
+  task(B,wordsHTML("🐞 Find the bug! Tap the wrong word."),"Найди ошибку! Нажми на неправильное слово.",true);
+  FIX.forEach((t,i)=>bugCard(B,t,"fx"+i));
+  task(B,wordsHTML("🧩 Build the sentence."),"Собери предложение: нажимай слова по порядку.",true);
   BUILD_SENT.forEach((t,i)=>tapOrderCard(B,t.w,t.show,"cn"+i,{sayAll:true}));
-  B.appendChild(pronTipEl({w:"can / can't", ipa:"kæn / kɑːnt", ru:"умею / не умею", tip:"can — короткое «кэн», can't — долгое «ка:нт». Слушай гласную: длинная — значит отрицание!", pairs:[["can","kæn"],["can't","kɑːnt"]]}));
+  B.appendChild(pronTipEl({w:"can't", ipa:"kɑːnt", ru:"не умею", tip:"can — короткое «кэн», can't — долгое «ка:нт». Слушай гласную: длинная — значит отрицание!", pairs:[["can","kæn"],["can't","kɑːnt"]]}));
   brainBreak(B,"music","bb-music");
 })();
 
 /* ---- 5 reading: Robo's music show ---- */
 (function(){ const B=PANEL.s.body; goal(B,"s");
   B.appendChild(el("p","rut","📖 SB p. 42 ex. 2 · Famous musicians"));
-  task(B,"🌟 Look at the music stars! Who are they?","Посмотри на звёзд музыки! Нажми на каждую карточку — послушай имя.",true);
-  const sp=el("div","poster"); sp.innerHTML=`<h2 class="pt">Music stars!</h2><div class="pl">Tap · listen</div>`;
+  task(B,wordsHTML("🌟 Look at the music stars! Who are they?"),"Посмотри на звёзд музыки! Нажми на каждую карточку — послушай имя.",true);
+  const sp=el("div","poster"); sp.innerHTML=`<h2 class="pt">${wordsHTML("Music stars!")}</h2><div class="pl">Tap · listen</div>`;
   const sg=el("div","grid"); sg.id="gridS"; sp.appendChild(sg); B.appendChild(sp);
   STARS.forEach((s,i)=>{ const b=el("button","etile stuck"); b.type="button"; b.dataset.ue="skip"; b.style.setProperty("--tilt",[-2,1,-1,2][i%4]+"deg");
     b.innerHTML=`<span class="emo">${P3(s.k)}</span><span class="w">${s.n}</span><span class="r">${s.ru}</span>`;
     b.onclick=()=>speak(s.n);
     sg.appendChild(b); });
-  task(B,"🔮 Guess first! Who plays what?","Сначала предположи! Нажми имя слева, потом инструмент справа. Потом проверим в тексте.",true);
+  task(B,wordsHTML("🔮 Guess first! Who plays what?"),"Сначала предположи! Нажми имя слева, потом инструмент справа. Потом проверим в тексте.",true);
   matchCard(B,{left:PRE_LEFT,right:PRE_RIGHT,pairs:PRE_PAIRS},"pre",{
     rightHTML:(x,j)=>`<span class="emo" style="font-size:30px">${PRE_RIGHT[j].split(" ")[0]}</span> ${PRE_RIGHT[j].split(" ").slice(1).join(" ")}`,
     onPair:j=>speak(PRE_RIGHT[j].replace(/[^a-z]/g,""))
   });
-  taskHid(B,"📖 Listen and read: Robo's music show.","Упр. 2: слушай и читай историю Робо про музыкантов. Незнакомое слово — нажми на него! Потом проверь свои догадки.");
+  taskHid(B,wordsHTML("📖 Listen and read: Robo's music show."),"Упр. 2: слушай и читай историю Робо про музыкантов. Незнакомое слово — нажми на него! Потом проверь свои догадки.");
   B.appendChild(TAPHINT());
   const k=karaoke(B,STORY);
   const row=el("div","page-tools");
   const pb=el("button","btn","▶ Play the story"), rd=el("button","btn ghost","✓ I've read it · Я прочитал(а)"); pb.type="button"; rd.type="button"; pb.dataset.ue="skip";
   pb.onclick=()=>playAll(k,STORY,()=>{}); rd.onclick=()=>{ rd.disabled=true; award("read",rd); };
   row.append(pb,rd); B.appendChild(row);
-  task(B,"✅ Check your guesses! Answer the questions.","Проверь свои догадки! Ответь на вопросы по истории.",true);
-  SQ.forEach((t,i)=>choiceCard(B,t,"sq"+i,{onOk:()=>speak(t.q+" — "+t.options[t.answer])}));
-  task(B,"🤔 True or false?","Правда или неправда?",true);
-  choiceCard(B,TFQ,"tf",{onOk:()=>speak("False! B.B. King can play the guitar, not the violin.")});
+  task(B,wordsHTML("✅ Check your guesses! Answer the questions."),"Проверь свои догадки! Ответь на вопросы по истории.",true);
+  SQ.forEach((t,i)=>{ const c=choiceCard(B,{q:wordsHTML(t.q),options:t.options,answer:t.answer},"sq"+i,{sayText:t.q,onOk:()=>speak(t.q+" — "+t.options[t.answer])}); addTr(c,t.ru); });
+  task(B,wordsHTML("🤔 True or false?"),"Правда или неправда?",true);
+  const tfc=choiceCard(B,{q:wordsHTML(TFQ.q),options:TFQ.options,answer:TFQ.answer},"tf",{sayText:TFQ.q,onOk:()=>speak("False! B.B. King can play the guitar, not the violin.")}); addTr(tfc,TFQ.ru);
 })();
 
 /* ---- 6 evidence: my music card ---- */
 (function(){ const B=PANEL.m.body; goal(B,"m");
-  task(B,"🎙️ Make your music card!","Сделай свою музыкальную открытку: выбери по одному инструменту в каждой строке. Want to play — «хочу играть».",true);
+  task(B,wordsHTML("🎙️ Make your music card!"),"Сделай свою музыкальную открытку: выбери по одному инструменту в каждой строке. Want to play — «хочу играть».",true);
   const c=el("div","card"); B.appendChild(c);
   const art=el("div","artbox big","🎵🎼"); c.appendChild(art);
   const out=el("div","nbpage reltext"), fb=fbEl();
@@ -1114,7 +1145,7 @@ function BUILD(){
     out.innerHTML=L.map(x=>`<p class="ln${/…/.test(x)?" todo":""}">${x}</p>`).join("");
     ready.disabled=!MYCARD.every(Boolean); };
   MROWS.forEach((r,i)=>{
-    c.appendChild(el("p","task rowlab",`${r.icon} ${r.lab}`));
+    c.appendChild(el("p","task rowlab",`${r.icon} ${wordsHTML(r.lab)}`));
     const g=el("div","verbs");
     MCHIPS.forEach(v=>{ const b=el("button","vchip",v); b.type="button";
       b.onclick=()=>{ g.querySelectorAll(".vchip").forEach(x=>x.classList.toggle("on",x===b)); MYCARD[i]=v; paint(); speak(`${r.say} ${v.replace(/ [^ ]+$/,"")}.`); };
@@ -1126,7 +1157,7 @@ function BUILD(){
   ready.onclick=()=>{ chime("ok"); setFb(fb,true,"Beautiful! Now say it aloud and record it 🎙️"); ck.hidden=false; award("card",ready); };
   const ck=el("div","checklist",`<b>✅ Check yourself · Проверь себя</b><br>can / can't ✓ · the + инструмент ✓ · 3 предложения ✓`); ck.hidden=true; c.appendChild(ck);
   paint();
-  task(B,"🎙️ Read your music card and record it.","Прочитай свою открытку вслух и запиши себя.",true);
+  task(B,wordsHTML("🎙️ Read your music card and record it."),"Прочитай свою открытку вслух и запиши себя.",true);
   const rc=el("div","card"); B.appendChild(rc);
   recWidget(rc,"rec",{max:45,model:"I can play the piano. I can't play the trumpet. I want to play the guitar!"});
 })();
